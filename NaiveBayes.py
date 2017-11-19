@@ -68,16 +68,17 @@ def dtrProbability(query, classLabel):
     for j in range(len(query)):
         num = 0
         for i in range(len(matrix)):
-            if matrix[i][j] == query[j]:
-                if np.equal(matrix[i][len(matrix[0])-1], classLabel):
-                    num += 1
+            if matrix[i][j] == query[j] and np.equal(matrix[i][len(matrix[0])-1], classLabel):
+                num += 1
         column = matrix[:, len(matrix[0]) - 1]
         l = list(column)
         den = l.count(classLabel)
-        answer *= float(num+1)/float(den)
+        answer *= float(num+1)/float(den) #Here we add num+1 for avoiding zeroes
     return answer
 
-query = list(matrix[0])
+k = 1
+query = list(matrix[k])
+print(matrix[k])
 query.pop()
 numClasses = np.unique(matrix[:, len(matrix[0])-1]).size
 finalList = []
