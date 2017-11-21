@@ -1,29 +1,13 @@
 import numpy as np
 import scipy.stats as ss
 
+
 def is_number(n):
     try:
         number = float(n)
     except:
         return False, None
     return True, number
-
-
-def binning(column):
-    k = 10
-    column = np.array(column)
-    column = column.astype(np.float)
-    max = np.amax(column)
-    min = np.amin(column)
-    size = (max - min) / k
-    bins = []
-    temp = min
-    for i in range(k):
-        bins.append(temp)
-        temp = temp + size
-    bins = np.array(bins)
-    binning = np.digitize(column, bins)
-    return binning
 
 
 file = open("project3_dataset2.txt")
@@ -49,8 +33,6 @@ for i in range(len(matrix[0])):
 
 def prior_probability(classLabel):
     column = matrix[:,len(matrix[0])-1]
-    for i in range(len(column)):
-        column[i] = column[i].strip("\n")
     l = list(column)
     matrix[:, len(matrix[0]) - 1] = column
     num = l.count(classLabel)
@@ -120,7 +102,7 @@ finalList = []
 for i in range(numClasses):
     probability = 1
     for j in range(len(query)):
-        if(mainArr[j] == "Numerical"):
+        if mainArr[j] == "Numerical":
             mean_var_list = mean_var_dict.get(i)[j]
             mu = mean_var_list[0]
             var = mean_var_list[1]
@@ -129,5 +111,7 @@ for i in range(numClasses):
             probability *= ss.norm(mu, sigma).pdf(float(x))
         else:
             probability *= categorical_probability(query[j], j, str(i))
-    finalList.append(probability)
+    prior = prior_probability(str(i))
+    descriptor = probability
+    finalList.append(prior * probability)
 print(np.amax(finalList), " ", finalList.index(np.amax(finalList)))
