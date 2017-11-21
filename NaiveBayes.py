@@ -1,5 +1,5 @@
 import numpy as np
-
+import scipy.stats as ss
 
 def is_number(n):
     try:
@@ -46,12 +46,6 @@ for i in range(len(matrix[0])):
     else:
         mainArr.append("Categorical")
 
-# for i in range(len(matrix[0])):
-#     if mainArr[i] == "Categorical" or mainArr[i] == "Class":
-#         continue
-#     column = matrix[:,i]
-#     matrix[:,i] = binning(column)
-
 
 def prior_probability(classLabel):
     column = matrix[:,len(matrix[0])-1]
@@ -64,51 +58,76 @@ def prior_probability(classLabel):
     return num/den
 
 
-def calculate_mean_and_variance(column):
+def calculate_mean_and_variance(column, classValue):
     column = column.astype(np.float)
     sum = 0
     newCol = []
-    mean = np.mean(column)
+    count = 0
     for i in range(len(column)):
-        newCol.append(column[i]-mean)
-        newCol[i] = newCol[i]**2
-        sum += newCol[i]
-    return np.mean(column), sum/(len(newCol)-1)
+        if int(matrix[i][len(matrix[0])-1]) == classValue:
+            sum += column[i]
+            count += 1
+    mean = sum/count
+    sum = 0
+    for i in range(len(column)):
+        if int(matrix[i][len(matrix[0]) - 1]) == classValue:
+            temp = column[i]-mean
+            sum += temp**2
+            newCol.append(temp)
+    return mean, sum/(len(newCol)-1)
 
 
-def dtr_probability(query, classLabel):
-    answer = 1.0
-    for j in range(len(query)):
-        num = 0
-        for i in range(len(matrix)):
-            if matrix[i][j] == query[j] and np.equal(matrix[i][len(matrix[0])-1], classLabel):
-                num += 1
-        column = matrix[:, len(matrix[0]) - 1]
-        l = list(column)
-        den = l.count(classLabel)
-        answer *= float(num+1)/float(den) #Here we add num+1 for avoiding zeroes
-    return answer
+def categorical_probability(category, colIndex, classLabel):
+    num = 0
+    for i in range(len(matrix)):
+        matrix[i][len(matrix[0]) - 1] = matrix[i][len(matrix[0]) - 1].rstrip("\n")
+        if matrix[i][colIndex] == category and np.equal(matrix[i][len(matrix[0]) - 1], classLabel):
+            num += 1
+    column = matrix[:, len(matrix[0]) - 1]
+    l = list(column)
+    den = l.count(classLabel)
+    return num/den
 
 
-meanVector = []
-varianceVector = []
+numClasses = np.unique(matrix[:, len(matrix[0])-1]).size
+mean_var_dict = {}
+list0 = []
+list1 = []
+mean_var_dict[0] = list0
+mean_var_dict[1] = list1
 for i in range(len(mainArr)-1):
-    if mainArr[i] == "Numerical":
-        mean, var = calculate_mean_and_variance(matrix[:,i])
-        meanVector.append(mean)
-        varianceVector.append(var)
-    elif mainArr[i] == "Categorical":
-        meanVector.append("Categorical")
-        varianceVector.append("Categorical")
+    for j in range(numClasses):
+        if mainArr[i] == "Numerical":
+            mean, var = calculate_mean_and_variance(matrix[:,i], j)
+            temp = []
+            if j is 0:
+                temp.append(mean)
+                temp.append(var)
+                mean_var_dict[j].append(temp)
+            else:
+                temp.append(mean)
+                temp.append(var)
+                mean_var_dict[j].append(temp)
+        elif mainArr[i] == "Categorical":
+            mean_var_dict[j].append(["Categorical"])
 
-print(meanVector)
-print(varianceVector)
 
-k = 1
+k = 0
 query = list(matrix[k])
 query.pop()
 numClasses = np.unique(matrix[:, len(matrix[0])-1]).size
 finalList = []
 for i in range(numClasses):
-    finalList.append(prior_probability(str(i)) * dtr_probability(query, str(i)))
-#print(np.amax(finalList), " ", finalList.index(np.amax(finalList)))
+    probability = 1
+    for j in range(len(query)):
+        if(mainArr[j] == "Numerical"):
+            mean_var_list = mean_var_dict.get(i)[j]
+            mu = mean_var_list[0]
+            var = mean_var_list[1]
+            x = query[j]
+            sigma = var**(1/2)
+            probability *= ss.norm(mu, sigma).pdf(float(x))
+        else:
+            probability *= categorical_probability(query[j], j, str(i))
+    finalList.append(probability)
+print(np.amax(finalList), " ", finalList.index(np.amax(finalList)))
