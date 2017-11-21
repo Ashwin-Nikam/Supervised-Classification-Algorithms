@@ -23,7 +23,6 @@ for line in f:
     matrix.append(entry)
 
 matrix = np.array(matrix)
-#print(matrix)
 
 mainArr = []
 for word in matrix[0]:
@@ -32,22 +31,27 @@ for word in matrix[0]:
         mainArr.append("Numerical")
     else:
         mainArr.append("Categorical")
-print(mainArr)
 
-"""
-k = 10
-myColumn = matrix[:,0]
-myColumn = np.array(myColumn)
-myColumn = myColumn.astype(np.float)
-max = np.amax(myColumn)
-min = np.amin(myColumn)
-size = (max - min)/k
-bins = []
-temp = min
-for i in range(k):
-    bins.append(temp)
-    temp = temp + size
-bins = np.array(bins)
-binning = np.digitize(myColumn, bins)
-print(binning[291])
-"""
+meanVector = []
+varianceVector = []
+for i in range(len(mainArr)-1):
+    if mainArr[i] == "Numerical":
+        meanVector.append(np.mean(matrix[:,i].astype(np.float)))
+        varianceVector.append(np.var(matrix[:,i].astype(np.float)))
+    elif mainArr[i] == "Categorical":
+        meanVector.append("Categorical")
+        varianceVector.append("Categorical")
+#print(meanVector)
+#print(varianceVector)
+
+test = [17, 15, 23, 7, 9, 13]
+def calculate_mean_and_variance(column):
+    sum = 0
+    newCol = []
+    mean = np.mean(column)
+    for i in range(len(column)):
+        newCol.append(column[i]-mean)
+        newCol[i] = newCol[i]**2
+        sum += newCol[i]
+    return np.mean(column), sum/(len(newCol)-1)
+print(calculate_mean_and_variance(test))

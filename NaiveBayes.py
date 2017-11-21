@@ -46,13 +46,14 @@ for i in range(len(matrix[0])):
     else:
         mainArr.append("Categorical")
 
-for i in range(len(matrix[0])):
-    if mainArr[i] == "Categorical" or mainArr[i] == "Class":
-        continue
-    column = matrix[:,i]
-    matrix[:,i] = binning(column)
+# for i in range(len(matrix[0])):
+#     if mainArr[i] == "Categorical" or mainArr[i] == "Class":
+#         continue
+#     column = matrix[:,i]
+#     matrix[:,i] = binning(column)
 
-def priorProbability(classLabel):
+
+def prior_probability(classLabel):
     column = matrix[:,len(matrix[0])-1]
     for i in range(len(column)):
         column[i] = column[i].strip("\n")
@@ -63,7 +64,19 @@ def priorProbability(classLabel):
     return num/den
 
 
-def dtrProbability(query, classLabel):
+def calculate_mean_and_variance(column):
+    column = column.astype(np.float)
+    sum = 0
+    newCol = []
+    mean = np.mean(column)
+    for i in range(len(column)):
+        newCol.append(column[i]-mean)
+        newCol[i] = newCol[i]**2
+        sum += newCol[i]
+    return np.mean(column), sum/(len(newCol)-1)
+
+
+def dtr_probability(query, classLabel):
     answer = 1.0
     for j in range(len(query)):
         num = 0
@@ -76,12 +89,26 @@ def dtrProbability(query, classLabel):
         answer *= float(num+1)/float(den) #Here we add num+1 for avoiding zeroes
     return answer
 
+
+meanVector = []
+varianceVector = []
+for i in range(len(mainArr)-1):
+    if mainArr[i] == "Numerical":
+        mean, var = calculate_mean_and_variance(matrix[:,i])
+        meanVector.append(mean)
+        varianceVector.append(var)
+    elif mainArr[i] == "Categorical":
+        meanVector.append("Categorical")
+        varianceVector.append("Categorical")
+
+print(meanVector)
+print(varianceVector)
+
 k = 1
 query = list(matrix[k])
-print(matrix[k])
 query.pop()
 numClasses = np.unique(matrix[:, len(matrix[0])-1]).size
 finalList = []
 for i in range(numClasses):
-    finalList.append(priorProbability(str(i)) * dtrProbability(query, str(i)))
-print(np.amax(finalList), " ", finalList.index(np.amax(finalList)))
+    finalList.append(prior_probability(str(i)) * dtr_probability(query, str(i)))
+#print(np.amax(finalList), " ", finalList.index(np.amax(finalList)))
