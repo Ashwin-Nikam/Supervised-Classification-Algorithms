@@ -10,7 +10,7 @@ def is_number(n):
     return True, n
 
 
-file = open("project3_dataset2.txt")
+file = open("project3_dataset1.txt")
 lines = file.readlines()
 rows = len(lines)
 columns = len(lines[0].split("\t"))
@@ -146,6 +146,7 @@ def calculate_accuracy(class_list, test_data):
     f1_measure = (2*true_positive)/((2*true_positive) + false_positive + false_negative)
     return accuracy, precision, recall, f1_measure
 
+
 folds = 10
 part_len = int(len(matrix) / folds)
 metrics_avg = [0.0,0.0,0.0,0.0]
@@ -172,8 +173,6 @@ for i in range(folds):
     class_list = calculate_posterior_probability(test_data, train_data) #Calculating probability for every row in test data
     accuracy, precision, recall,\
     f1_measure = calculate_accuracy(class_list, test_data_idx)
-    #print("Accuracy: ",accuracy, "Precision: ", precision, "Recall: ", recall,
-    #"F1-measure: ", f1_measure)
     print("Fold: ",i+1)
     accuracy_list.append(accuracy)
     precision_list.append(precision)
