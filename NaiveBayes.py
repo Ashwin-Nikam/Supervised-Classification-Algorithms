@@ -10,7 +10,7 @@ def is_number(n):
     return True, n
 
 
-file = open("project3_dataset1.txt")
+file = open("project3_dataset2.txt")
 lines = file.readlines()
 rows = len(lines)
 columns = len(lines[0].split("\t"))
@@ -20,10 +20,9 @@ for row in range(rows):
         matrix[row][column] = lines[row].split("\t")[column]
         matrix[row][column] = matrix[row][column].rstrip("\n")
 matrix = np.array(matrix)
-
-
 mean_var_dict = {}
 mainArr = []
+
 for i in range(len(matrix[0])):
     status, number = is_number(matrix[0][i])
     if i == len(matrix[0])-1:
@@ -167,17 +166,19 @@ for i in range(folds):
     train_data_idx = list(train_data_idx)
     test_data_idx.sort()
     train_data_idx.sort()
+
     train_data = matrix[train_data_idx]
     test_data= matrix[test_data_idx]
     mean_var_in_dict(train_data)  #Updating dictionary with mean and variance for new train data
     class_list = calculate_posterior_probability(test_data, train_data) #Calculating probability for every row in test data
-    accuracy, precision, recall,\
-    f1_measure = calculate_accuracy(class_list, test_data_idx)
+
+    accuracy, precision, recall, f1_measure = calculate_accuracy(class_list, test_data_idx)
     print("Fold: ",i+1)
     accuracy_list.append(accuracy)
     precision_list.append(precision)
     recall_list.append(recall)
     f1_measure_list.append(f1_measure)
+
 accuracy = np.sum(accuracy_list)/len(accuracy_list)
 precision = np.sum(precision_list)/len(precision_list)
 recall = np.sum(recall_list)/len(recall_list)

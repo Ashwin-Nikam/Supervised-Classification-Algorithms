@@ -13,3 +13,17 @@ matrix = np.array(matrix)
 true_values = np.array(matrix)[:,columns-1] #true_values contains the true labels
 matrix = np.delete(matrix, columns-1, 1) #matrix contains all the data
 columns = columns-1
+
+def calculate_impurity(split_matrix):
+    
+
+for i in range(columns):
+    temp_matrix = matrix.copy()
+    temp_matrix = temp_matrix[temp_matrix[:,i].argsort()]
+    column = temp_matrix[:,i]
+    for row in range(rows):
+        index1 = list(range(0,row))
+        index2 = list(range(row, rows))
+        split1 = temp_matrix[index1]
+        split2 = temp_matrix[index2]
+
