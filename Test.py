@@ -8,7 +8,7 @@ class Node:
     left = None
     right = None
 
-    def f(self, criteria, left, right):
+    def __init__(self, criteria, left, right):
         self.split_criteria = criteria
         self.left = left
         self.right = right
@@ -145,6 +145,71 @@ for i in range(columns-1):
                 split_value = temp_matrix[row][i]
         split_values.append(split_value)
         gin_values.append(max)
-
 print(split_values)
-print(gin_values)
+#print(gin_values)
+print(matrix)
+
+
+def same_class(reduced_matrix):
+    value = reduced_matrix[0][len(reduced_matrix[0])-1]
+    for i in range(len(reduced_matrix)):
+        if reduced_matrix[i][len(reduced_matrix[i])-1] != value:
+            return False
+    return True
+
+
+def majority_class(reduced_matrix):
+    count1 = 0
+    count2 = 0
+    class_column = reduced_matrix[:,len(reduced_matrix[0])-1]
+    class_labels = np.unique(class_column)
+    for label in class_column:
+        if label == class_labels[0]:
+            count1 += 1
+        elif label == class_labels[1]:
+            count2 += 1
+    if count1 > count2:
+        return class_labels[0]
+    return class_labels[1]
+
+
+def split(criteria, column_index, input_matrix):
+    left_set = []
+    right_set = []
+    if isinstance(criteria, list):      #Categorical
+        for i in range(len(input_matrix)):
+            value = input_matrix[i][column_index]
+            if value in criteria:
+                right_set.append(input_matrix[i])
+            else:
+                left_set.append(input_matrix[i])
+    elif isinstance(criteria, float):   #Numerical
+        for i in range(len(input_matrix)):
+            value = input_matrix[i][column_index]
+            if value >= criteria:
+                right_set.append(input_matrix[i])
+            else:
+                left_set.append(input_matrix[i])
+    return np.array(left_set), np.array(right_set)
+
+
+
+"""
+def mainMethod(records)
+    status = same_class(records)
+    if yes:
+        return Node(class)
+    else:
+        if attribute left:
+            criteria = computeBestSplit(records)  //remember to not take this attribute again        
+            Node node = new Node("criteria");
+            left_set, right_set = split(criteria, records)
+            node.left = mainMethod(left_set)
+            node.right = mainMethod(right_set)
+            return node
+        else:
+            class = majorityClass(records)
+            return new Node("class)
+
+root = mainMethod(matrix)
+"""
