@@ -22,7 +22,7 @@ def is_number(n):
     return True, n
 
 
-file = open("new_dataset.txt")
+file = open("project3_dataset1.txt")
 lines = file.readlines()
 rows = len(lines)
 columns = len(lines[0].split("\t"))
@@ -153,7 +153,7 @@ def compute_best_split(input_matrix, split_values, gini_values, column_list):
         elif mainArr[i] == "Numerical":
             handle_numerical_data(input_matrix, i, split_values, gini_values)
 
-    split_values = np.array(split_values)
+    print(gini_values)
     gini_values = np.array(gini_values)
     index = np.argmax(gini_values)
     criteria = split_values[index]
@@ -204,6 +204,8 @@ def split(criteria, column_index, input_matrix):
 
 
 def main_method(records, old_list):
+    if len(records) == 0:
+        return None
     col_vals = old_list.copy()
     flag, criteria = same_class(records)
     if flag:
