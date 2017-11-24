@@ -3,7 +3,7 @@ import itertools
 import sys
 
 
-class Node:
+class Node(object):
     split_criteria = None
     left = None
     right = None
@@ -82,6 +82,7 @@ main_gini = calculate_gini(matrix)
 
 
 def handle_categorical_data(input_matrix, column_index, split_values, gini_values):
+    rows = len(input_matrix)
     column = input_matrix[:,column_index]
     unique = np.unique(column)
     part_list = []
@@ -123,6 +124,7 @@ def handle_numerical_data(input_matrix, column_index, split_values, gini_values)
     max = -sys.maxsize
     temp_matrix = input_matrix.copy()
     temp_matrix = temp_matrix[temp_matrix[:, column_index].argsort()]
+    rows = len(input_matrix)
     for row in range(rows):
         index1 = list(range(0, row))
         index2 = list(range(row, rows))
@@ -141,27 +143,29 @@ def handle_numerical_data(input_matrix, column_index, split_values, gini_values)
     gini_values.append(max)
 
 
-
-def compute_best_split(input_matrix, split_values, gini_values):
+def compute_best_split(input_matrix, split_values, gini_values, column_list):
     for i in range(len(input_matrix[0])-1):
+        if i in column_list:
+            split_values.append(-sys.maxsize)
+            gini_values.append(-sys.maxsize)
         if mainArr[i] == "Categorical":
             handle_categorical_data(input_matrix, i, split_values, gini_values)
         elif mainArr[i] == "Numerical":
             handle_numerical_data(input_matrix, i, split_values, gini_values)
-    """
-    calculate_splits(input_matrix, split_values, gini_values)
-    take split_value corresponding to max given gini value and mark that column as split
-    return split_value, split_value's index
-    """
-    
+
+    split_values = np.array(split_values)
+    gini_values = np.array(gini_values)
+    index = np.argmax(gini_values)
+    criteria = split_values[index]
+    return criteria, index
 
 
 def same_class(reduced_matrix):
     value = reduced_matrix[0][len(reduced_matrix[0])-1]
     for i in range(len(reduced_matrix)):
         if reduced_matrix[i][len(reduced_matrix[i])-1] != value:
-            return False
-    return True
+            return False, None
+    return True, value
 
 
 def majority_class(reduced_matrix):
@@ -199,28 +203,26 @@ def split(criteria, column_index, input_matrix):
     return np.array(left_set), np.array(right_set)
 
 
-
-"""
-column_list = []
-def mainMethod(records, old_list)
-    column_list = old_list.copy()
-    status = same_class(records)
-    if yes:
-        return Node(class)
+def main_method(records, old_list):
+    col_vals = old_list.copy()
+    flag, criteria = same_class(records)
+    if flag:
+        return Node(criteria, None, None)
     else:
-        if attribute left:
+        if len(col_vals) < len(records[0])-2:
             split_values = []
             gini_values = []
-            criteria, column_index = computeBestSplit(records, split_values, gini_values)  //remember to not take this attribute again        
-            column_list.append(column_index)
-            Node node = new Node("criteria");
+            criteria, column_index = compute_best_split(records, split_values, gini_values, col_vals)  #remember to not take this attribute again
+            col_vals.append(column_index)
+            node = Node(criteria, None, None)
             left_set, right_set = split(criteria, column_index, records)
-            node.left = mainMethod(left_set, column_list)
-            node.right = mainMethod(right_set, column_list)
+            node.left = main_method(left_set, col_vals)
+            node.right = main_method(right_set, col_vals)
             return node
         else:
-            class = majorityClass(records)
-            return new Node("class)
+            criteria = majority_class(records)
+            return Node(criteria, None, None)
 
-root = mainMethod(matrix, column_list)
-"""
+
+column_list = []
+root = main_method(matrix, column_list)
