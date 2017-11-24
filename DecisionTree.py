@@ -1,18 +1,17 @@
 import numpy as np
-import pandas as pd
+import itertools
 import sys
 
-file = open("project3_dataset2.txt")
-lines = file.readlines()
-rows = len(lines)
-columns = len(lines[0].split("\t"))
-matrix = [[0 for x in range(columns)] for y in range(rows)]
-for row in range(rows):
-    for column in range(columns):
-        matrix[row][column] = lines[row].split("\t")[column]
-matrix = np.array(matrix)
-true_values = np.array(matrix)[:,columns-1] #true_values contains the true labels
-mainArr = []
+
+class Node:
+    split_criteria = None
+    left = None
+    right = None
+
+    def __init__(self, criteria, left, right):
+        self.split_criteria = criteria
+        self.left = left
+        self.right = right
 
 
 def is_number(n):
@@ -23,14 +22,43 @@ def is_number(n):
     return True, n
 
 
+file = open("new_dataset.txt")
+lines = file.readlines()
+rows = len(lines)
+columns = len(lines[0].split("\t"))
+matrix = [[0 for x in range(columns)] for y in range(rows)]
+for row in range(rows):
+    for column in range(columns):
+        matrix[row][column] = lines[row].split("\t")[column]
+        status, number = is_number(matrix[row][column])
+        if status:
+            matrix[row][column] = number
+matrix = np.array(matrix)
+true_values = np.array(matrix)[:,columns-1] #true_values contains the true labels
+mainArr = []
+main_dictionary = {}
+
 for i in range(len(matrix[0])):
     status, number = is_number(matrix[0][i])
     if i == len(matrix[0])-1:
+        column = matrix[:, i]
+        d = dict([(y, x) for x, y in enumerate(sorted(set(column)))])
+        main_dictionary[i] = d
         mainArr.append("Class")
     elif status:
         mainArr.append("Numerical")
     else:
+        column = matrix[:,i]
+        d = dict([(y, x) for x, y in enumerate(sorted(set(column)))])
+        main_dictionary[i] = d
         mainArr.append("Categorical")
+
+for i in range(len(mainArr)):
+    if mainArr[i] == "Categorical" or mainArr[i] == "Class":
+        d = main_dictionary[i]
+        for j in range(len(matrix)):
+            matrix[j][i] = d[matrix[j][i]]
+matrix = matrix.astype(np.float)
 
 
 def calculate_gini(split_matrix):
@@ -40,10 +68,9 @@ def calculate_gini(split_matrix):
     num0 = 0
     num1 = 0
     for i in range(den):
-        split_matrix[i][columns - 1] = split_matrix[i][columns-1].rstrip("\n")
-        if split_matrix[i][columns-1] == '0':
+        if split_matrix[i][columns-1] == 0:
             num0 += 1
-        elif split_matrix[i][columns-1] == '1':
+        elif split_matrix[i][columns-1] == 1:
             num1 += 1
     probability0 = num0/den
     probability1 = num1/den
@@ -51,35 +78,149 @@ def calculate_gini(split_matrix):
     return gini
 
 
-def handle_categorical_data():
-    return
-
-
 main_gini = calculate_gini(matrix)
-max = -sys.maxsize
-split_points = []
-for i in range(columns-1):
-    if mainArr[i] == "Categorical":
-        handle_categorical_data()
+
+
+def handle_categorical_data(input_matrix, column_index, split_values, gini_values):
+    column = input_matrix[:,column_index]
+    unique = np.unique(column)
+    part_list = []
+    for i in range(len(unique)):
+         partitions = itertools.combinations(unique, i)
+         for j in partitions:
+             if (len(j) > 0):
+                 part_list.append(list(j))
+    split_value = 0
+    max = -sys.maxsize
+    for split in part_list:
+        split1 = []
+        split2 = []
+        for i in range(len(input_matrix)):
+            count = 0
+            for j in split:
+                if input_matrix[i][column_index] == j:
+                    count += 1
+                    split1.append(input_matrix[i])
+            if count == 0:
+                split2.append(input_matrix[i])
+        split1 = np.array(split1)
+        split2 = np.array(split2)
+        gini1 = calculate_gini(split1)
+        gini2 = calculate_gini(split2)
+        a = (len(split1) / rows) * gini1
+        b = (len(split2) / rows) * gini2
+        gini_a = a + b
+        diff = main_gini - gini_a
+        if diff > max:
+            max = diff
+            split_value = split
+    split_values.append(split_value)
+    gini_values.append(max)
+
+
+def handle_numerical_data(input_matrix, column_index, split_values, gini_values):
+    split_value = 0
+    max = -sys.maxsize
+    temp_matrix = input_matrix.copy()
+    temp_matrix = temp_matrix[temp_matrix[:, column_index].argsort()]
+    for row in range(rows):
+        index1 = list(range(0, row))
+        index2 = list(range(row, rows))
+        split1 = temp_matrix[index1]
+        split2 = temp_matrix[index2]
+        gini1 = calculate_gini(split1)
+        gini2 = calculate_gini(split2)
+        a = (len(index1) / rows) * gini1
+        b = (len(index2) / rows) * gini2
+        gini_a = a + b
+        diff = main_gini - gini_a
+        if diff > max:
+            max = diff
+            split_value = temp_matrix[row][column_index]
+    split_values.append(split_value)
+    gini_values.append(max)
+
+
+
+def compute_best_split(input_matrix, split_values, gini_values):
+    for i in range(len(input_matrix[0])-1):
+        if mainArr[i] == "Categorical":
+            handle_categorical_data(input_matrix, i, split_values, gini_values)
+        elif mainArr[i] == "Numerical":
+            handle_numerical_data(input_matrix, i, split_values, gini_values)
+    """
+    calculate_splits(input_matrix, split_values, gini_values)
+    take split_value corresponding to max given gini value and mark that column as split
+    return split_value, split_value's index
+    """
+    
+
+
+def same_class(reduced_matrix):
+    value = reduced_matrix[0][len(reduced_matrix[0])-1]
+    for i in range(len(reduced_matrix)):
+        if reduced_matrix[i][len(reduced_matrix[i])-1] != value:
+            return False
+    return True
+
+
+def majority_class(reduced_matrix):
+    count1 = 0
+    count2 = 0
+    class_column = reduced_matrix[:,len(reduced_matrix[0])-1]
+    class_labels = np.unique(class_column)
+    for label in class_column:
+        if label == class_labels[0]:
+            count1 += 1
+        elif label == class_labels[1]:
+            count2 += 1
+    if count1 > count2:
+        return class_labels[0]
+    return class_labels[1]
+
+
+def split(criteria, column_index, input_matrix):
+    left_set = []
+    right_set = []
+    if isinstance(criteria, list):      #Categorical
+        for i in range(len(input_matrix)):
+            value = input_matrix[i][column_index]
+            if value in criteria:
+                right_set.append(input_matrix[i])
+            else:
+                left_set.append(input_matrix[i])
+    elif isinstance(criteria, float):   #Numerical
+        for i in range(len(input_matrix)):
+            value = input_matrix[i][column_index]
+            if value >= criteria:
+                right_set.append(input_matrix[i])
+            else:
+                left_set.append(input_matrix[i])
+    return np.array(left_set), np.array(right_set)
+
+
+
+"""
+column_list = []
+def mainMethod(records, old_list)
+    column_list = old_list.copy()
+    status = same_class(records)
+    if yes:
+        return Node(class)
     else:
-        split_point = 0
-        max = -sys.maxsize
-        temp_matrix = matrix.copy()
-        temp_matrix = temp_matrix[temp_matrix[:,i].argsort()]
-        for row in range(rows):
-            index1 = list(range(0,row))
-            index2 = list(range(row, rows))
-            split1 = temp_matrix[index1]
-            split2 = temp_matrix[index2]
-            gini1 = calculate_gini(split1)
-            gini2 = calculate_gini(split2)
-            a = (len(index1)/rows)*gini1
-            b = (len(index2)/rows)*gini2
-            gini_a = a + b
-            diff = main_gini - gini_a
-            if diff > max:
-                max = diff
-                split_point = row
-        split_points.append(split_point)
-        print("Max ", max)
-        print("Split point ",split_point)
+        if attribute left:
+            split_values = []
+            gini_values = []
+            criteria, column_index = computeBestSplit(records, split_values, gini_values)  //remember to not take this attribute again        
+            column_list.append(column_index)
+            Node node = new Node("criteria");
+            left_set, right_set = split(criteria, column_index, records)
+            node.left = mainMethod(left_set, column_list)
+            node.right = mainMethod(right_set, column_list)
+            return node
+        else:
+            class = majorityClass(records)
+            return new Node("class)
+
+root = mainMethod(matrix, column_list)
+"""

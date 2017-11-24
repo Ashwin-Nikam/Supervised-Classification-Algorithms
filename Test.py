@@ -78,13 +78,10 @@ def calculate_gini(split_matrix):
     return gini
 
 
-split_values = []
-gin_values = []
 main_gini = calculate_gini(matrix)
-max = -sys.maxsize
 
 
-def handle_categorical_data(column_index):
+def handle_categorical_data(input_matrix, column_index, split_values, gini_values):
     column = matrix[:,column_index]
     unique = np.unique(column)
     part_list = []
@@ -118,37 +115,46 @@ def handle_categorical_data(column_index):
             max = diff
             split_value = split
     split_values.append(split_value)
-    gin_values.append(max)
+    gini_values.append(max)
 
 
-for i in range(columns-1):
-    if mainArr[i] == "Categorical":
-        handle_categorical_data(i)
-    else:
-        split_value = 0
-        max = -sys.maxsize
-        temp_matrix = matrix.copy()
-        temp_matrix = temp_matrix[temp_matrix[:,i].argsort()]
-        for row in range(rows):
-            index1 = list(range(0,row))
-            index2 = list(range(row, rows))
-            split1 = temp_matrix[index1]
-            split2 = temp_matrix[index2]
-            gini1 = calculate_gini(split1)
-            gini2 = calculate_gini(split2)
-            a = (len(index1)/rows)*gini1
-            b = (len(index2)/rows)*gini2
-            gini_a = a + b
-            diff = main_gini - gini_a
-            if diff > max:
-                max = diff
-                split_value = temp_matrix[row][i]
-        split_values.append(split_value)
-        gin_values.append(max)
-print(split_values)
-#print(gin_values)
-print(matrix)
+def handle_numerical_data(input_matrix, column_index, split_values, gini_values):
+    split_value = 0
+    max = -sys.maxsize
+    temp_matrix = matrix.copy()
+    temp_matrix = temp_matrix[temp_matrix[:, i].argsort()]
+    for row in range(rows):
+        index1 = list(range(0, row))
+        index2 = list(range(row, rows))
+        split1 = temp_matrix[index1]
+        split2 = temp_matrix[index2]
+        gini1 = calculate_gini(split1)
+        gini2 = calculate_gini(split2)
+        a = (len(index1) / rows) * gini1
+        b = (len(index2) / rows) * gini2
+        gini_a = a + b
+        diff = main_gini - gini_a
+        if diff > max:
+            max = diff
+            split_value = temp_matrix[row][i]
+    split_values.append(split_value)
+    gini_values.append(max)
 
+
+def calculate_splits(input_matrix, split_values, gini_values):
+    for i in range(len(input_matrix[0])-1):
+        if mainArr[i] == "Categorical":
+            handle_categorical_data(input_matrix, i, split_values, gini_values)
+        elif mainArr[i] == "Numerical":
+            handle_numerical_data(input_matrix, i, split_values, gini_values)
+
+def compute_best_split(input_matrix, split_values, gini_values):
+    """
+    calculate_splits(input_matrix, split_values, gini_values)
+    take split_value corresponding to max given gini value and mark that column as split
+    return split_value, split_value's index
+    """
+    return
 
 def same_class(reduced_matrix):
     value = reduced_matrix[0][len(reduced_matrix[0])-1]
@@ -195,21 +201,26 @@ def split(criteria, column_index, input_matrix):
 
 
 """
-def mainMethod(records)
+column_list = []
+def mainMethod(records, old_list)
+    column_list = old_list.copy()
     status = same_class(records)
     if yes:
         return Node(class)
     else:
         if attribute left:
-            criteria = computeBestSplit(records)  //remember to not take this attribute again        
+            split_values = []
+            gini_values = []
+            criteria, column_index = computeBestSplit(records, split_values, gini_values)  //remember to not take this attribute again        
+            column_list.append(column_index)
             Node node = new Node("criteria");
-            left_set, right_set = split(criteria, records)
-            node.left = mainMethod(left_set)
-            node.right = mainMethod(right_set)
+            left_set, right_set = split(criteria, column_index, records)
+            node.left = mainMethod(left_set, column_list)
+            node.right = mainMethod(right_set, column_list)
             return node
         else:
             class = majorityClass(records)
             return new Node("class)
 
-root = mainMethod(matrix)
+root = mainMethod(matrix, column_list)
 """
