@@ -42,7 +42,7 @@ def is_number(n):
 """
 
 
-file = open("project3_dataset2.txt")
+file = open("project3_dataset1.txt")
 lines = file.readlines()
 rows = len(lines)
 columns = len(lines[0].split("\t"))
@@ -337,7 +337,6 @@ def calculate_accuracy(class_list, test_data):
     class_label = test_data[:, len(test_data[0]) - 1]
     class_label = class_label.astype(np.int)
     class_list = np.array(class_list).astype(np.int)
-    print(class_list)
     true_positive = 0
     true_negative = 0
     false_positive = 0
