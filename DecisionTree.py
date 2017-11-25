@@ -112,7 +112,7 @@ main_gini = calculate_gini(matrix)
 """
 
 
-def handle_categorical_data(input_matrix, column_index, split_values, gini_values):
+def handle_categorical_data(input_matrix, column_index):
     rows = len(input_matrix)
     column = input_matrix[:,column_index]
     unique = np.unique(column)
@@ -146,8 +146,7 @@ def handle_categorical_data(input_matrix, column_index, split_values, gini_value
         if diff > max:
             max = diff
             split_value = split
-    split_values[column_index] = split_value
-    gini_values[column_index] = max
+    return split_value
 
 
 """
@@ -155,7 +154,7 @@ def handle_categorical_data(input_matrix, column_index, split_values, gini_value
 """
 
 
-def handle_numerical_data(input_matrix, column_index, split_values, gini_values):
+def handle_numerical_data(input_matrix, column_index):
     split_value = 0
     max = -sys.maxsize
     temp_matrix = input_matrix.copy()
@@ -175,8 +174,7 @@ def handle_numerical_data(input_matrix, column_index, split_values, gini_values)
         if diff > max:
             max = diff
             split_value = temp_matrix[row][column_index]
-    split_values[column_index] = split_value
-    gini_values[column_index] = max
+    return split_value
 
 
 """
@@ -184,19 +182,13 @@ def handle_numerical_data(input_matrix, column_index, split_values, gini_values)
 """
 
 
-def compute_best_split(input_matrix, split_values, gini_values, column_list):
-    for i in range(len(input_matrix[0])-2):
-        if i in column_list:
-            continue
-        elif mainArr[i] == "Categorical":
-            handle_categorical_data(input_matrix, i, split_values, gini_values)
-        elif mainArr[i] == "Numerical":
-            handle_numerical_data(input_matrix, i, split_values, gini_values)
+def compute_best_split(input_matrix, column_index):
+    if mainArr[column_index] == "Categorical":
+        split_value = handle_categorical_data(input_matrix, column_index)
+    elif mainArr[column_index] == "Numerical":
+        split_value = handle_numerical_data(input_matrix, column_index)
 
-    gini_values = np.array(gini_values)
-    index = np.argmax(gini_values)
-    criteria = split_values[index]
-    return criteria, index
+    return split_value
 
 
 """
@@ -262,24 +254,21 @@ def split(criteria, column_index, input_matrix):
 """
 
 
-def main_method(records, old_list):
+def main_method(records, column_index):
     if len(records) == 0:
         return None
-    col_vals = old_list.copy()
+    my_index = column_index
     flag, value = same_class(records)
     if flag:
         return Node(None, None, None, None, value)
     else:
-        if len(col_vals) < len(records[0])-2:
-            split_values = [0 for i in range(len(records[0])-2)]
-            gini_values = [0 for i in range(len(records[0])-2)]
-            criteria, column_index = compute_best_split(records, split_values, gini_values, col_vals)
-            print(split_values)
-            col_vals.append(column_index)
-            node = Node(criteria, None, None, column_index, None)
-            left_set, right_set = split(criteria, column_index, records)
-            node.left = main_method(left_set, col_vals)
-            node.right = main_method(right_set, col_vals)
+        if my_index < len(records[0])-1:
+            criteria = compute_best_split(records, my_index)
+            node = Node(criteria, None, None, my_index, None)
+            left_set, right_set = split(criteria, my_index, records)
+            my_index += 1
+            node.left = main_method(left_set, my_index)
+            node.right = main_method(right_set, my_index)
             return node
         else:
             value = majority_class(records)
@@ -315,6 +304,8 @@ def print_tree(root):
 
 
 def traverse_tree(root, query):
+    if root is None:
+        return -1
     if root.final_value is not None:
         return root.final_value
     else:
@@ -341,6 +332,7 @@ def calculate_accuracy(class_list, test_data):
     class_label = test_data[:, len(test_data[0]) - 1]
     class_label = class_label.astype(np.int)
     class_list = np.array(class_list).astype(np.int)
+    print(class_list)
     true_positive = 0
     true_negative = 0
     false_positive = 0
@@ -383,8 +375,7 @@ def calculate_each_test(root, test_data_idx):
 ------------------------------------------------------------------------------------------------------------------------
 """
 
-
-folds = 5
+folds = 10
 part_len = int(len(matrix) / folds)
 metrics_avg = [0.0,0.0,0.0,0.0]
 train_data_idx = set()
@@ -407,7 +398,7 @@ for i in range(folds):
     train_data = matrix[train_data_idx]
     test_data = matrix[test_data_idx]
 
-    root = main_method(train_data, [])
+    root = main_method(train_data, 0)
     class_list = calculate_each_test(root, test_data_idx)
     print("Fold: ", i + 1)
     accuracy, precision, recall, f1_measure = calculate_accuracy(class_list, test_data_idx)
