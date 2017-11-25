@@ -261,7 +261,7 @@ def main_method(records, old_list):
             criteria, column_index = compute_best_split(records, split_values, gini_values, col_vals)
             col_vals.append(column_index)
             if criteria == -sys.maxsize:
-                print(len(col_vals), " : ", len(records[0]) - 2)
+                print("criteria = -sys.maxsize!!")
             node = Node(criteria, None, None, column_index, None)
             left_set, right_set = split(criteria, column_index, records)
             node.left = main_method(left_set, col_vals)
@@ -305,7 +305,6 @@ def traverse_tree(root, query):
         return root.final_value
     else:
         a = root.split_criteria
-        print(a)
         if isinstance(a, list):
             if query[root.column_index] in a:
                 return traverse_tree(root.right, query)
@@ -327,7 +326,6 @@ def calculate_accuracy(class_list, test_data):
     test_data = matrix[test_data]
     class_label = test_data[:, len(test_data[0]) - 1]
     class_label = class_label.astype(np.int)
-    print(class_list)
     class_list = np.array(class_list).astype(np.int)
     true_positive = 0
     true_negative = 0
@@ -361,8 +359,6 @@ def calculate_each_test(root, test_data_idx):
     for i in range(len(test_data)):
         query = test_data[i]
         value = traverse_tree(root, query)
-        if value is None:
-            print("Chutya")
         class_list.append(value)
     return class_list
 
@@ -374,7 +370,7 @@ def calculate_each_test(root, test_data_idx):
 #     print(traverse_tree(root, query))
 
 
-folds = 5
+folds = 10
 part_len = int(len(matrix) / folds)
 metrics_avg = [0.0,0.0,0.0,0.0]
 train_data_idx = set()
