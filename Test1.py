@@ -1,6 +1,4 @@
 import numpy as np
 
-column = ["present", "absent", "present", "hahaha","banana","banana"]
-d = dict([(y,x) for x,y in enumerate(sorted(set(column)))])
-print(d.keys())
-print(d.values())
+a = [17, 15, 23, 7, 9, 13]
+print(np.std(a, ddof=1))

@@ -1,17 +1,22 @@
 import numpy as np
 import itertools
 import sys
+from queue import *
 
 
 class Node(object):
     split_criteria = None
     left = None
     right = None
+    column_index = None
+    final_value = None
 
-    def __init__(self, criteria, left, right):
+    def __init__(self, criteria, left, right, column_index, final_value):
         self.split_criteria = criteria
         self.left = left
         self.right = right
+        self.column_index = column_index
+        self.final_value = final_value
 
 
 def is_number(n):
@@ -22,7 +27,7 @@ def is_number(n):
     return True, n
 
 
-file = open("project3_dataset1.txt")
+file = open("new_dataset.txt")
 lines = file.readlines()
 rows = len(lines)
 columns = len(lines[0].split("\t"))
@@ -153,7 +158,6 @@ def compute_best_split(input_matrix, split_values, gini_values, column_list):
         elif mainArr[i] == "Numerical":
             handle_numerical_data(input_matrix, i, split_values, gini_values)
 
-    print(gini_values)
     gini_values = np.array(gini_values)
     index = np.argmax(gini_values)
     criteria = split_values[index]
@@ -207,24 +211,63 @@ def main_method(records, old_list):
     if len(records) == 0:
         return None
     col_vals = old_list.copy()
-    flag, criteria = same_class(records)
+    flag, value = same_class(records)
     if flag:
-        return Node(criteria, None, None)
+        return Node(None, None, None, None, value)
     else:
         if len(col_vals) < len(records[0])-2:
             split_values = []
             gini_values = []
-            criteria, column_index = compute_best_split(records, split_values, gini_values, col_vals)  #remember to not take this attribute again
+            criteria, column_index = compute_best_split(records, split_values, gini_values, col_vals)
             col_vals.append(column_index)
-            node = Node(criteria, None, None)
+            node = Node(criteria, None, None, column_index, None)
             left_set, right_set = split(criteria, column_index, records)
             node.left = main_method(left_set, col_vals)
             node.right = main_method(right_set, col_vals)
             return node
         else:
-            criteria = majority_class(records)
-            return Node(criteria, None, None)
-
+            value = majority_class(records)
+            return Node(None, None, None, None, value)
 
 column_list = []
 root = main_method(matrix, column_list)
+
+
+def print_tree():
+    q = Queue(maxsize=0)
+    q.put(root)
+    while not q.empty():
+        count = q.qsize()
+        for i in range(count):
+            node = q.get()
+            if node.split_criteria != None:
+                print(node.split_criteria)
+            else:
+                print(node.final_value,"!")
+            if node.left is not None:
+                q.put(node.left)
+            if node.right is not None:
+                q.put(node.right)
+        print("=======")
+
+
+def traverse_tree(root, query):
+    if root.final_value is not None:
+        print("!!!!!",root.final_value)
+        return
+    else:
+        a = root.split_criteria
+        if isinstance(a, list):
+            if query[root.column_index] in a:
+                traverse_tree(root.right, query)
+            else:
+                traverse_tree(root.left, query)
+        elif isinstance(a, float):
+            if query[root.column_index] >= a:
+                traverse_tree(root.right, query)
+            else:
+                traverse_tree(root.left, query)
+
+
+query = matrix[10]
+traverse_tree(root, query)

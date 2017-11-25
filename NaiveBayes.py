@@ -20,7 +20,7 @@ for row in range(rows):
         matrix[row][column] = lines[row].split("\t")[column]
         matrix[row][column] = matrix[row][column].rstrip("\n")
 matrix = np.array(matrix)
-mean_var_dict = {}
+mean_std_dict = {}
 mainArr = []
 
 for i in range(len(matrix[0])):
@@ -42,25 +42,6 @@ def prior_probability(classLabel):
     return num/den
 
 
-def calculate_mean_and_variance(column, input_matrix, classValue):
-    column = column.astype(np.float)
-    sum = 0
-    newCol = []
-    count = 0
-    for i in range(len(column)):
-        if int(input_matrix[i][len(matrix[0])-1]) == classValue:
-            sum += column[i]
-            count += 1
-    mean = sum/count
-    sum = 0
-    for i in range(len(column)):
-        if int(input_matrix[i][len(matrix[0]) - 1]) == classValue:
-            temp = column[i]-mean
-            sum += temp**2
-            newCol.append(temp)
-    return mean, sum/(len(newCol)-1)
-
-
 def categorical_probability(category, colIndex, classLabel):
     num = 0
     for i in range(len(matrix)):
@@ -74,25 +55,40 @@ def categorical_probability(category, colIndex, classLabel):
 
 def mean_var_in_dict(input_matrix):
     num_classes = np.unique(matrix[:, len(matrix[0])-1]).size
-    list0 = []
-    list1 = []
-    mean_var_dict[0] = list0
-    mean_var_dict[1] = list1
+    mean_std_dict[0] = []
+    mean_std_dict[1] = []
+    matrix_0 = []
+    matrix_1 = []
+    for i in range(len(input_matrix)):
+        if input_matrix[i][ len(input_matrix[0]) - 1] == '0':
+            matrix_0.append(input_matrix[i])
+        elif input_matrix[i][ len(input_matrix[0]) - 1] == '1':
+            matrix_1.append(input_matrix[i])
+    matrix_0 = np.array(matrix_0)
+    matrix_1 = np.array(matrix_1)
+
     for i in range(len(mainArr)-1):
         for j in range(num_classes):
             if mainArr[i] == "Numerical":
-                mean, var = calculate_mean_and_variance(input_matrix[:,i], input_matrix, j)
                 temp = []
                 if j is 0:
+                    main_col = matrix_0[:,i]
+                    main_col = main_col.astype(np.float)
+                    mean = np.mean(main_col)
+                    std = np.std(main_col, ddof=1)
                     temp.append(mean)
-                    temp.append(var)
-                    mean_var_dict[j].append(temp)
+                    temp.append(std)
+                    mean_std_dict[j].append(temp)
                 else:
+                    main_col = matrix_1[:, i]
+                    main_col = main_col.astype(np.float)
+                    mean = np.mean(main_col)
+                    std = np.std(main_col, ddof=1)
                     temp.append(mean)
-                    temp.append(var)
-                    mean_var_dict[j].append(temp)
+                    temp.append(std)
+                    mean_std_dict[j].append(temp)
             elif mainArr[i] == "Categorical":
-                mean_var_dict[j].append(["Categorical"])
+                mean_std_dict[j].append(["Categorical"])
 
 
 def calculate_posterior_probability(test_data, train_data):
@@ -103,20 +99,18 @@ def calculate_posterior_probability(test_data, train_data):
         numClasses = np.unique(matrix[:, len(matrix[0])-1]).size
         finalList = []
         for i in range(numClasses):
-            probability = 1
+            probability = 1.0
             for j in range(len(query)):
                 if mainArr[j] == "Numerical":
-                    mean_var_list = mean_var_dict.get(i)[j]
-                    mu = mean_var_list[0]
-                    var = mean_var_list[1]
+                    mean_std_list = mean_std_dict.get(i)[j]
+                    mu = mean_std_list[0]
+                    sigma = mean_std_list[1]
                     x = query[j]
-                    sigma = var**(1/2)
                     probability *= ss.norm(mu, sigma).pdf(float(x))
                 else:
                     probability *= categorical_probability(query[j], j, str(i))
             prior = prior_probability(str(i))
-            descriptor = probability
-            finalList.append(prior * descriptor)
+            finalList.append(prior * probability)
         main_list.append(finalList.index(np.amax(finalList)))
     return main_list
 
