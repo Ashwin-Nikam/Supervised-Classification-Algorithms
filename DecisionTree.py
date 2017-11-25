@@ -266,6 +266,8 @@ def main_method(records, column_index):
             criteria = compute_best_split(records, my_index)
             node = Node(criteria, None, None, my_index, None)
             left_set, right_set = split(criteria, my_index, records)
+            xyz = records[:,my_index]
+            count = np.unique(xyz)
             my_index += 1
             node.left = main_method(left_set, my_index)
             node.right = main_method(right_set, my_index)
@@ -281,10 +283,12 @@ def main_method(records, column_index):
 
 
 def print_tree(root):
+    depth = 0
     q = Queue(maxsize=0)
     q.put(root)
     while not q.empty():
         count = q.qsize()
+        depth +=1
         for i in range(count):
             node = q.get()
             if node.split_criteria != None:
@@ -296,6 +300,7 @@ def print_tree(root):
             if node.right is not None:
                 q.put(node.right)
         print("=======")
+    print(depth)
 
 
 """
@@ -359,14 +364,12 @@ def calculate_accuracy(class_list, test_data):
 """
 
 
-def calculate_each_test(root, test_data_idx):
+def calculate_each_test(root, test_data_idx, fold):
     class_list = []
     test_data = matrix[test_data_idx]
     for i in range(len(test_data)):
         query = test_data[i]
         value = traverse_tree(root, query)
-        if value is None:
-            print("Chutya")
         class_list.append(value)
     return class_list
 
@@ -399,7 +402,7 @@ for i in range(folds):
     test_data = matrix[test_data_idx]
 
     root = main_method(train_data, 0)
-    class_list = calculate_each_test(root, test_data_idx)
+    class_list = calculate_each_test(root, test_data_idx, i)
     print("Fold: ", i + 1)
     accuracy, precision, recall, f1_measure = calculate_accuracy(class_list, test_data_idx)
     accuracy_list.append(accuracy)
@@ -414,7 +417,6 @@ recall = np.sum(recall_list)/len(recall_list)
 f1_measure = np.sum(f1_measure_list)/len(f1_measure_list)
 print("Accuracy: ",accuracy, "Precision: ", precision, "Recall: ", recall,
 "F1-measure: ", f1_measure)
-
 
 """
 ------------------------------------------------------------------------------------------------------------------------
