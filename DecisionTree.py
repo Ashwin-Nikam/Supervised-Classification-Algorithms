@@ -316,6 +316,8 @@ def print_tree(root):
 
 
 def traverse_tree(root, query):
+    if root is None:
+        return -1
     if root.final_value is not None:
         return root.final_value
     else:
@@ -376,8 +378,6 @@ def calculate_each_test(root, test_data_idx):
     for i in range(len(test_data)):
         query = test_data[i]
         value = traverse_tree(root, query)
-        if value is None:
-            print("Chutya")
         class_list.append(value)
     return class_list
 
@@ -387,7 +387,7 @@ def calculate_each_test(root, test_data_idx):
 """
 
 
-folds = 5
+folds = 10
 part_len = int(len(matrix) / folds)
 metrics_avg = [0.0,0.0,0.0,0.0]
 train_data_idx = set()
