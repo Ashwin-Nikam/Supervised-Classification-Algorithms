@@ -124,6 +124,8 @@ def handle_categorical_data(input_matrix, column_index, split_values, gini_value
                  part_list.append(list(j))
     split_value = 0
     max = -sys.maxsize
+    if len(part_list) == 0 or len(part_list) == len(unique):
+        return
     for split in part_list:
         split1 = []
         split2 = []
@@ -271,10 +273,9 @@ def main_method(records, old_list):
         return Node(None, None, None, None, value)
     else:
         if len(col_vals) < len(records[0])-2:
-            split_values = [0 for i in range(len(records[0])-2)]
-            gini_values = [0 for i in range(len(records[0])-2)]
+            split_values = [-sys.maxsize for i in range(len(records[0])-2)]
+            gini_values = [-sys.maxsize for i in range(len(records[0])-2)]
             criteria, column_index = compute_best_split(records, split_values, gini_values, col_vals)
-            print(split_values)
             col_vals.append(column_index)
             node = Node(criteria, None, None, column_index, None)
             left_set, right_set = split(criteria, column_index, records)
@@ -329,6 +330,8 @@ def traverse_tree(root, query):
                 return traverse_tree(root.right, query)
             else:
                 return traverse_tree(root.left, query)
+        else:
+            print("Chutya2")
 
 
 """
