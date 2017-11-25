@@ -4,6 +4,11 @@ import sys
 from queue import *
 
 
+"""
+------------------------------------------------------------------------------------------------------------------------
+"""
+
+
 class Node(object):
     split_criteria = None
     left = None
@@ -19,12 +24,22 @@ class Node(object):
         self.final_value = final_value
 
 
+"""
+------------------------------------------------------------------------------------------------------------------------
+"""
+
+
 def is_number(n):
     try:
         n = float(n)
     except:
         return False, None
     return True, n
+
+
+"""
+------------------------------------------------------------------------------------------------------------------------
+"""
 
 
 file = open("project3_dataset2.txt")
@@ -65,6 +80,7 @@ for i in range(len(mainArr)):
         for j in range(len(matrix)):
             matrix[j][i] = d[matrix[j][i]]
 matrix = matrix.astype(np.float)
+
 
 """
 ------------------------------------------------------------------------------------------------------------------------
@@ -171,8 +187,7 @@ def handle_numerical_data(input_matrix, column_index, split_values, gini_values)
 def compute_best_split(input_matrix, split_values, gini_values, column_list):
     for i in range(len(input_matrix[0])-2):
         if i in column_list:
-            split_values[i] = -sys.maxsize
-            gini_values[i] = -sys.maxsize
+            continue
         elif mainArr[i] == "Categorical":
             handle_categorical_data(input_matrix, i, split_values, gini_values)
         elif mainArr[i] == "Numerical":
@@ -259,9 +274,8 @@ def main_method(records, old_list):
             split_values = [0 for i in range(len(records[0])-2)]
             gini_values = [0 for i in range(len(records[0])-2)]
             criteria, column_index = compute_best_split(records, split_values, gini_values, col_vals)
+            print(split_values)
             col_vals.append(column_index)
-            if criteria == -sys.maxsize:
-                print("criteria = -sys.maxsize!!")
             node = Node(criteria, None, None, column_index, None)
             left_set, right_set = split(criteria, column_index, records)
             node.left = main_method(left_set, col_vals)
@@ -359,18 +373,18 @@ def calculate_each_test(root, test_data_idx):
     for i in range(len(test_data)):
         query = test_data[i]
         value = traverse_tree(root, query)
+        if value is None:
+            print("Chutya")
         class_list.append(value)
     return class_list
 
 
-# root = main_method(matrix, [])
-# for i in range(len(matrix)):
-#     query = matrix[i]
-#     print(query)
-#     print(traverse_tree(root, query))
+"""
+------------------------------------------------------------------------------------------------------------------------
+"""
 
 
-folds = 10
+folds = 5
 part_len = int(len(matrix) / folds)
 metrics_avg = [0.0,0.0,0.0,0.0]
 train_data_idx = set()
@@ -409,3 +423,8 @@ recall = np.sum(recall_list)/len(recall_list)
 f1_measure = np.sum(f1_measure_list)/len(f1_measure_list)
 print("Accuracy: ",accuracy, "Precision: ", precision, "Recall: ", recall,
 "F1-measure: ", f1_measure)
+
+
+"""
+------------------------------------------------------------------------------------------------------------------------
+"""
