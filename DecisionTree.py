@@ -42,7 +42,7 @@ def is_number(n):
 """
 
 
-file = open("project3_dataset1.txt")
+file = open("project3_dataset2.txt")
 lines = file.readlines()
 rows = len(lines)
 columns = len(lines[0].split("\t"))
@@ -128,7 +128,7 @@ def handle_categorical_data(input_matrix, column_index, split_values, gini_value
                  part_list.append(list(j))
     split_value = 0
     max = -sys.maxsize
-    if len(part_list) == 0 or len(part_list) == len(unique):  #Cause of all the problem
+    if len(part_list) == 0:  #Cause of all the problem
         return
     for split in part_list:
         split1 = []
@@ -152,6 +152,8 @@ def handle_categorical_data(input_matrix, column_index, split_values, gini_value
         if diff > max:
             max = diff
             split_value = split
+        if len(unique) == 2:
+            break
     split_values[column_index] = split_value
     gini_values[column_index] = max
 
@@ -243,14 +245,14 @@ def majority_class(reduced_matrix):
 def split(criteria, column_index, input_matrix):
     left_set = []
     right_set = []
-    if isinstance(criteria, list):      #Categorical
+    if isinstance(criteria, list):
         for i in range(len(input_matrix)):
             value = input_matrix[i][column_index]
             if value in criteria:
                 right_set.append(input_matrix[i])
             else:
                 left_set.append(input_matrix[i])
-    elif isinstance(criteria, float):   #Numerical
+    elif isinstance(criteria, float):
         for i in range(len(input_matrix)):
             value = input_matrix[i][column_index]
             if value >= criteria:
