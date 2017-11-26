@@ -91,13 +91,17 @@ def calculate_gini(split_matrix):
     den = len(split_matrix)
     if den == 0:
         return 0
-    num0 = 0
-    num1 = 0
-    for i in range(den):
-        if split_matrix[i][columns-1] == 0:
-            num0 += 1
-        elif split_matrix[i][columns-1] == 1:
-            num1 += 1
+    # num0 = 0
+    # num1 = 0
+    # for i in range(den):
+    #     if split_matrix[i][columns-1] == 0:
+    #         num0 += 1
+    #     elif split_matrix[i][columns-1] == 1:
+    #         num1 += 1
+    class_column = split_matrix[:, len(split_matrix[0]) - 1]
+    unique = np.unique(split_matrix)
+    num0 = np.count_nonzero(class_column == unique[0])
+    num1 = len(split_matrix) - num0
     probability0 = num0/den
     probability1 = num1/den
     gini = 1 - (probability0**2) - (probability1**2)
@@ -124,6 +128,8 @@ def handle_categorical_data(input_matrix, column_index):
                  part_list.append(list(j))
     split_value = 0
     max = -sys.maxsize
+    if len(part_list) == 0:  #Cause of all the problem
+        return
     for split in part_list:
         split1 = []
         split2 = []
@@ -146,7 +152,14 @@ def handle_categorical_data(input_matrix, column_index):
         if diff > max:
             max = diff
             split_value = split
+<<<<<<< HEAD
     return split_value
+=======
+        if len(unique) == 2:
+            break
+    split_values[column_index] = split_value
+    gini_values[column_index] = max
+>>>>>>> version1
 
 
 """
@@ -182,6 +195,7 @@ def handle_numerical_data(input_matrix, column_index):
 """
 
 
+<<<<<<< HEAD
 def compute_best_split(input_matrix, column_index):
     if mainArr[column_index] == "Categorical":
         split_value = handle_categorical_data(input_matrix, column_index)
@@ -189,6 +203,23 @@ def compute_best_split(input_matrix, column_index):
         split_value = handle_numerical_data(input_matrix, column_index)
 
     return split_value
+=======
+def compute_best_split(input_matrix, split_values, gini_values, column_list):
+    for i in range(len(input_matrix[0])-1):
+        if i in column_list:
+            continue
+        elif mainArr[i] == "Categorical":
+            handle_categorical_data(input_matrix, i, split_values, gini_values)
+        elif mainArr[i] == "Numerical":
+            handle_numerical_data(input_matrix, i, split_values, gini_values)
+
+    gini_values = np.array(gini_values)
+    index = np.argmax(gini_values)
+    criteria = split_values[index]
+    # if criteria == -sys.maxsize:
+    #     print("Break")
+    return criteria, index
+>>>>>>> version1
 
 
 """
@@ -197,11 +228,20 @@ def compute_best_split(input_matrix, column_index):
 
 
 def same_class(reduced_matrix):
+<<<<<<< HEAD
     label_column = reduced_matrix[:, len(reduced_matrix[0])-1]
     unique = np.unique(label_column)
     if len(unique) > 1:
         return False, None
     return True, unique[0]
+=======
+    class_column = reduced_matrix[:, len(reduced_matrix[0])-1]
+    unique = np.unique(class_column)
+    if len(unique) > 1:
+        return False, None
+    return True, unique[0]
+
+>>>>>>> version1
 
 """
 ------------------------------------------------------------------------------------------------------------------------
@@ -226,14 +266,14 @@ def majority_class(reduced_matrix):
 def split(criteria, column_index, input_matrix):
     left_set = []
     right_set = []
-    if isinstance(criteria, list):      #Categorical
+    if isinstance(criteria, list):
         for i in range(len(input_matrix)):
             value = input_matrix[i][column_index]
             if value in criteria:
                 right_set.append(input_matrix[i])
             else:
                 left_set.append(input_matrix[i])
-    elif isinstance(criteria, float):   #Numerical
+    elif isinstance(criteria, float):
         for i in range(len(input_matrix)):
             value = input_matrix[i][column_index]
             if value >= criteria:
@@ -256,6 +296,7 @@ def main_method(records, column_index):
     if flag:
         return Node(None, None, None, None, value)
     else:
+<<<<<<< HEAD
         if my_index < len(records[0])-1:
             criteria = compute_best_split(records, my_index)
             node = Node(criteria, None, None, my_index, None)
@@ -265,6 +306,20 @@ def main_method(records, column_index):
             my_index += 1
             node.left = main_method(left_set, my_index)
             node.right = main_method(right_set, my_index)
+=======
+        if len(col_vals) < len(records[0])-1:
+            split_values = [-sys.maxsize for i in range(len(records[0])-1)]
+            gini_values = [-sys.maxsize for i in range(len(records[0])-1)]
+            criteria, column_index = compute_best_split(records, split_values, gini_values, col_vals)
+            if criteria == -sys.maxsize:
+                value = majority_class(records)
+                return Node(None, None, None, None, value)
+            col_vals.append(column_index)
+            node = Node(criteria, None, None, column_index, None)
+            left_set, right_set = split(criteria, column_index, records)
+            node.left = main_method(left_set, col_vals)
+            node.right = main_method(right_set, col_vals)
+>>>>>>> version1
             return node
         else:
             value = majority_class(records)
@@ -319,6 +374,8 @@ def traverse_tree(root, query):
                 return traverse_tree(root.right, query)
             else:
                 return traverse_tree(root.left, query)
+        else:
+            print("Chutya2")
 
 
 """
@@ -363,6 +420,11 @@ def calculate_each_test(root, test_data_idx, fold):
     for i in range(len(test_data)):
         query = test_data[i]
         value = traverse_tree(root, query)
+<<<<<<< HEAD
+=======
+        if value is None:
+            print("Break")
+>>>>>>> version1
         class_list.append(value)
     return class_list
 
@@ -371,6 +433,10 @@ def calculate_each_test(root, test_data_idx, fold):
 ------------------------------------------------------------------------------------------------------------------------
 """
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> version1
 folds = 10
 part_len = int(len(matrix) / folds)
 metrics_avg = [0.0,0.0,0.0,0.0]
