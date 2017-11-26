@@ -42,7 +42,7 @@ def is_number(n):
 """
 
 
-file = open("project3_dataset1.txt")
+file = open("project3_dataset2.txt")
 lines = file.readlines()
 rows = len(lines)
 columns = len(lines[0].split("\t"))
@@ -385,45 +385,7 @@ def calculate_each_test(root, test_data_idx):
 """
 
 
-folds = 10
-part_len = int(len(matrix) / folds)
-metrics_avg = [0.0, 0.0, 0.0, 0.0]
-train_data_idx = set()
-accuracy_list = []
-precision_list = []
-recall_list = []
-f1_measure_list = []
-for i in range(folds):
-    if i != folds - 1:
-        start = (i * part_len)
-        end = start + part_len
-        test_data_idx = set(range(start, end))
-    else:
-        test_data_idx = set(range(i * part_len, len(matrix)))
-    train_data_idx = set(range(len(matrix))).difference(test_data_idx)
-    test_data_idx = list(test_data_idx)
-    train_data_idx = list(train_data_idx)
-    test_data_idx.sort()
-    train_data_idx.sort()
-    train_data = matrix[train_data_idx]
-    test_data = matrix[test_data_idx]
-
-    root = main_method(train_data, [])
-    class_list = calculate_each_test(root, test_data_idx)
-    print("Fold: ", i + 1)
-    accuracy, precision, recall, f1_measure = calculate_accuracy(class_list, test_data_idx)
-    accuracy_list.append(accuracy)
-    precision_list.append(precision)
-    recall_list.append(recall)
-    f1_measure_list.append(f1_measure)
-    print(accuracy)
-
-accuracy = np.sum(accuracy_list)/len(accuracy_list)
-precision = np.sum(precision_list)/len(precision_list)
-recall = np.sum(recall_list)/len(recall_list)
-f1_measure = np.sum(f1_measure_list)/len(f1_measure_list)
-print("Accuracy: ",accuracy, "Precision: ", precision, "Recall: ", recall,
-"F1-measure: ", f1_measure)
+root = main_method(matrix, [])
 
 
 """
