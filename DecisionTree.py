@@ -42,7 +42,7 @@ def is_number(n):
 """
 
 
-file = open("project3_dataset2.txt")
+file = open("project3_dataset1.txt")
 lines = file.readlines()
 rows = len(lines)
 columns = len(lines[0].split("\t"))
@@ -91,13 +91,17 @@ def calculate_gini(split_matrix):
     den = len(split_matrix)
     if den == 0:
         return 0
-    num0 = 0
-    num1 = 0
-    for i in range(den):
-        if split_matrix[i][columns-1] == 0:
-            num0 += 1
-        elif split_matrix[i][columns-1] == 1:
-            num1 += 1
+    # num0 = 0
+    # num1 = 0
+    # for i in range(den):
+    #     if split_matrix[i][columns-1] == 0:
+    #         num0 += 1
+    #     elif split_matrix[i][columns-1] == 1:
+    #         num1 += 1
+    class_column = split_matrix[:, len(split_matrix[0]) - 1]
+    unique = np.unique(split_matrix)
+    num0 = np.count_nonzero(class_column == unique[0])
+    num1 = len(split_matrix) - num0
     probability0 = num0/den
     probability1 = num1/den
     gini = 1 - (probability0**2) - (probability1**2)
@@ -124,7 +128,7 @@ def handle_categorical_data(input_matrix, column_index, split_values, gini_value
                  part_list.append(list(j))
     split_value = 0
     max = -sys.maxsize
-    if len(part_list) == 0 or len(part_list) == len(unique):
+    if len(part_list) == 0 or len(part_list) == len(unique):  #Cause of all the problem
         return
     for split in part_list:
         split1 = []
@@ -187,7 +191,7 @@ def handle_numerical_data(input_matrix, column_index, split_values, gini_values)
 
 
 def compute_best_split(input_matrix, split_values, gini_values, column_list):
-    for i in range(len(input_matrix[0])-2):
+    for i in range(len(input_matrix[0])-1):
         if i in column_list:
             continue
         elif mainArr[i] == "Categorical":
@@ -198,6 +202,8 @@ def compute_best_split(input_matrix, split_values, gini_values, column_list):
     gini_values = np.array(gini_values)
     index = np.argmax(gini_values)
     criteria = split_values[index]
+    # if criteria == -sys.maxsize:
+    #     print("Break")
     return criteria, index
 
 
@@ -267,10 +273,13 @@ def main_method(records, old_list):
     if flag:
         return Node(None, None, None, None, value)
     else:
-        if len(col_vals) < len(records[0])-2:
-            split_values = [-sys.maxsize for i in range(len(records[0])-2)]
-            gini_values = [-sys.maxsize for i in range(len(records[0])-2)]
+        if len(col_vals) < len(records[0])-1:
+            split_values = [-sys.maxsize for i in range(len(records[0])-1)]
+            gini_values = [-sys.maxsize for i in range(len(records[0])-1)]
             criteria, column_index = compute_best_split(records, split_values, gini_values, col_vals)
+            if criteria == -sys.maxsize:
+                value = majority_class(records)
+                return Node(None, None, None, None, value)
             col_vals.append(column_index)
             node = Node(criteria, None, None, column_index, None)
             left_set, right_set = split(criteria, column_index, records)
@@ -373,6 +382,8 @@ def calculate_each_test(root, test_data_idx):
     for i in range(len(test_data)):
         query = test_data[i]
         value = traverse_tree(root, query)
+        if value is None:
+            print("Break")
         class_list.append(value)
     return class_list
 
