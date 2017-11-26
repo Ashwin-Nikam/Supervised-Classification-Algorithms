@@ -91,17 +91,13 @@ def calculate_gini(split_matrix):
     den = len(split_matrix)
     if den == 0:
         return 0
-    # num0 = 0
-    # num1 = 0
-    # for i in range(den):
-    #     if split_matrix[i][columns-1] == 0:
-    #         num0 += 1
-    #     elif split_matrix[i][columns-1] == 1:
-    #         num1 += 1
-    class_column = split_matrix[:, len(split_matrix[0]) - 1]
-    unique = np.unique(split_matrix)
-    num0 = np.count_nonzero(class_column == unique[0])
-    num1 = len(split_matrix) - num0
+    num0 = 0
+    num1 = 0
+    for i in range(den):
+        if split_matrix[i][columns-1] == 0:
+            num0 += 1
+        elif split_matrix[i][columns-1] == 1:
+            num1 += 1
     probability0 = num0/den
     probability1 = num1/den
     gini = 1 - (probability0**2) - (probability1**2)
@@ -128,7 +124,7 @@ def handle_categorical_data(input_matrix, column_index, split_values, gini_value
                  part_list.append(list(j))
     split_value = 0
     max = -sys.maxsize
-    if len(part_list) == 0:  #Cause of all the problem
+    if len(part_list) == 0:
         return
     for split in part_list:
         split1 = []
@@ -204,8 +200,6 @@ def compute_best_split(input_matrix, split_values, gini_values, column_list):
     gini_values = np.array(gini_values)
     index = np.argmax(gini_values)
     criteria = split_values[index]
-    # if criteria == -sys.maxsize:
-    #     print("Break")
     return criteria, index
 
 
@@ -338,8 +332,6 @@ def traverse_tree(root, query):
                 return traverse_tree(root.right, query)
             else:
                 return traverse_tree(root.left, query)
-        else:
-            print("Chutya2")
 
 
 """
@@ -384,8 +376,6 @@ def calculate_each_test(root, test_data_idx):
     for i in range(len(test_data)):
         query = test_data[i]
         value = traverse_tree(root, query)
-        if value is None:
-            print("Break")
         class_list.append(value)
     return class_list
 
