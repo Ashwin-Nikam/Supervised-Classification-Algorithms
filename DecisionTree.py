@@ -197,12 +197,11 @@ def compute_best_split(input_matrix, column_index):
 
 
 def same_class(reduced_matrix):
-    value = reduced_matrix[0][len(reduced_matrix[0])-1]
-    for i in range(len(reduced_matrix)):
-        if reduced_matrix[i][len(reduced_matrix[i])-1] != value:
-            return False, None
-    return True, value
-
+    label_column = reduced_matrix[:, len(reduced_matrix[0])-1]
+    unique = np.unique(label_column)
+    if len(unique) > 1:
+        return False, None
+    return True, unique[0]
 
 """
 ------------------------------------------------------------------------------------------------------------------------
@@ -210,15 +209,10 @@ def same_class(reduced_matrix):
 
 
 def majority_class(reduced_matrix):
-    count1 = 0
-    count2 = 0
     class_column = reduced_matrix[:,len(reduced_matrix[0])-1]
     class_labels = np.unique(class_column)
-    for label in class_column:
-        if label == class_labels[0]:
-            count1 += 1
-        elif label == class_labels[1]:
-            count2 += 1
+    count1 = np.count_nonzero(class_column == class_labels[0])
+    count2 = np.count_nonzero(class_column == class_labels[1])
     if count1 > count2:
         return class_labels[0]
     return class_labels[1]
