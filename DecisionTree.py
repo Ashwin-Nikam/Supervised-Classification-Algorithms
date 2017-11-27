@@ -55,7 +55,6 @@ for row in range(rows):
         if status:
             matrix[row][column] = number
 matrix = np.array(matrix)
-true_values = np.array(matrix)[:,columns-1] #true_values contains the true labels
 mainArr = []
 main_dictionary = {}
 
@@ -91,13 +90,13 @@ def calculate_gini(split_matrix):
     den = len(split_matrix)
     if den == 0:
         return 0
-    num0 = 0
-    num1 = 0
-    for i in range(den):
-        if split_matrix[i][columns-1] == 0:
-            num0 += 1
-        elif split_matrix[i][columns-1] == 1:
-            num1 += 1
+    class_column = split_matrix[:, len(split_matrix[0]) - 1]
+    unique = np.unique(class_column)
+    num0 = np.count_nonzero(class_column == unique[0])
+    if len(unique) > 1:
+        num1 = np.count_nonzero(class_column == unique[1])
+    else:
+        num1 = 0
     probability0 = num0/den
     probability1 = num1/den
     gini = 1 - (probability0**2) - (probability1**2)
@@ -310,8 +309,6 @@ def print_tree(root):
 
 
 def traverse_tree(root, query):
-    if root is None:
-        return -1
     if root.final_value is not None:
         return root.final_value
     else:
@@ -334,7 +331,6 @@ def traverse_tree(root, query):
 
 
 def calculate_accuracy(class_list, test_data):
-    test_data = matrix[test_data]
     class_label = test_data[:, len(test_data[0]) - 1]
     class_label = class_label.astype(np.int)
     class_list = np.array(class_list).astype(np.int)
@@ -403,7 +399,7 @@ for i in range(folds):
     root = main_method(train_data, [])
     class_list = calculate_each_test(root, test_data_idx)
     print("Fold: ", i + 1)
-    accuracy, precision, recall, f1_measure = calculate_accuracy(class_list, test_data_idx)
+    accuracy, precision, recall, f1_measure = calculate_accuracy(class_list, test_data)
     accuracy_list.append(accuracy)
     precision_list.append(precision)
     recall_list.append(recall)
