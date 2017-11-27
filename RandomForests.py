@@ -1,7 +1,7 @@
 import numpy as np
 import itertools
 import sys
-from queue import *
+import random
 
 
 """
@@ -81,7 +81,6 @@ for i in range(len(mainArr)):
             matrix[j][i] = d[matrix[j][i]]
 matrix = matrix.astype(np.float)
 
-
 """
 ------------------------------------------------------------------------------------------------------------------------
 """
@@ -104,12 +103,11 @@ def calculate_gini(split_matrix):
     return gini
 
 
-main_gini = calculate_gini(matrix)
-
-
 """
 ------------------------------------------------------------------------------------------------------------------------
 """
+
+main_gini = calculate_gini(matrix)
 
 
 def handle_categorical_data(input_matrix, column_index, split_values, gini_values):
@@ -172,8 +170,8 @@ def handle_numerical_data(input_matrix, column_index, split_values, gini_values)
         split2 = temp_matrix[index2]
         gini1 = calculate_gini(split1)
         gini2 = calculate_gini(split2)
-        a = (len(index1) / rows) * gini1
-        b = (len(index2) / rows) * gini2
+        a = (len(split1) / rows) * gini1
+        b = (len(split2) / rows) * gini2
         gini_a = a + b
         diff = main_gini - gini_a
         if diff > max:
@@ -189,13 +187,15 @@ def handle_numerical_data(input_matrix, column_index, split_values, gini_values)
 
 
 def compute_best_split(input_matrix, split_values, gini_values, column_list):
-    for i in range(len(input_matrix[0])-1):
-        if i in column_list:
+    random_features = random.sample(range(0, len(input_matrix[0])), m)
+    list.sort(random_features)
+    for feature_index in random_features:
+        if feature_index in column_list:
             continue
-        elif mainArr[i] == "Categorical":
-            handle_categorical_data(input_matrix, i, split_values, gini_values)
-        elif mainArr[i] == "Numerical":
-            handle_numerical_data(input_matrix, i, split_values, gini_values)
+        elif mainArr[feature_index] == "Categorical":
+            handle_categorical_data(input_matrix, feature_index, split_values, gini_values)
+        elif mainArr[feature_index] == "Numerical":
+            handle_numerical_data(input_matrix, feature_index, split_values, gini_values)
 
     gini_values = np.array(gini_values)
     index = np.argmax(gini_values)
@@ -269,14 +269,17 @@ def main_method(records, old_list):
     if flag:
         return Node(None, None, None, None, value)
     else:
-        if len(col_vals) < len(records[0])-1:
+        if len(col_vals) < m:
             split_values = [-sys.maxsize for i in range(len(records[0])-1)]
             gini_values = [-sys.maxsize for i in range(len(records[0])-1)]
             criteria, column_index = compute_best_split(records, split_values, gini_values, col_vals)
             if criteria == -sys.maxsize:
                 value = majority_class(records)
                 return Node(None, None, None, None, value)
-            col_vals.append(column_index)
+            if mainArr[column_index] == "Categorical":
+                col_vals.append(column_index)
+            elif mainArr[column_index] == "Numerical":
+                col_vals.append(-sys.maxsize)
             node = Node(criteria, None, None, column_index, None)
             left_set, right_set = split(criteria, column_index, records)
             node.left = main_method(left_set, col_vals)
@@ -292,22 +295,11 @@ def main_method(records, old_list):
 """
 
 
-def print_tree(root):
-    q = Queue(maxsize=0)
-    q.put(root)
-    while not q.empty():
-        count = q.qsize()
-        for i in range(count):
-            node = q.get()
-            if node.split_criteria != None:
-                print(node.split_criteria)
-            else:
-                print(node.final_value,"!")
-            if node.left is not None:
-                q.put(node.left)
-            if node.right is not None:
-                q.put(node.right)
-        print("=======")
+def height(root):
+    if root is None:
+        return -1
+    else:
+        return max(height(root.left), height(root.right)) + 1
 
 
 """
@@ -384,9 +376,37 @@ def calculate_each_test(root, test_data_idx):
 ------------------------------------------------------------------------------------------------------------------------
 """
 
+number_of_trees = 10
+m = 3
+num_training = 400
+root_list = []
+main_class_list = []
+test_data_idx = range(400, len(matrix))
+for i in range(number_of_trees):
+    train_data_idx = []
+    for k in range(num_training):
+        train_data_idx.append(random.randint(0, num_training))
+    training_data = matrix[train_data_idx]
+    root_list.append(main_method(training_data, []))
+    class_list = calculate_each_test(root_list[i], test_data_idx)
+    main_class_list.append(class_list)
 
-root = main_method(matrix, [])
-
+main_class_list = np.array(main_class_list, dtype=np.float64)
+final_class_list = []
+for i in range(len(main_class_list[0])):
+    class_column = main_class_list[:, i]
+    unique = np.unique(class_column)
+    if len(unique) == 1:
+        final_class_list.append(unique[0])
+    else:
+        count1 = np.count_nonzero(class_column == unique[0])
+        count2 = np.count_nonzero(class_column == unique [1])
+        if count1 > count2:
+            final_class_list.append(unique[0])
+        else:
+            final_class_list.append(unique[1])
+accuracy, precision, recall, f1_measure = calculate_accuracy(final_class_list, test_data_idx)
+print("Accuracy :", accuracy)
 
 """
 ------------------------------------------------------------------------------------------------------------------------

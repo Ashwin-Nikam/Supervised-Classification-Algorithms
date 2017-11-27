@@ -42,7 +42,7 @@ def is_number(n):
 """
 
 
-file = open("project3_dataset1.txt")
+file = open("project3_dataset2.txt")
 lines = file.readlines()
 rows = len(lines)
 columns = len(lines[0].split("\t"))
@@ -103,10 +103,6 @@ def calculate_gini(split_matrix):
     gini = 1 - (probability0**2) - (probability1**2)
     return gini
 
-
-main_gini = calculate_gini(matrix)
-
-
 """
 ------------------------------------------------------------------------------------------------------------------------
 """
@@ -123,7 +119,7 @@ def handle_categorical_data(input_matrix, column_index, split_values, gini_value
              if (len(j) > 0):
                  part_list.append(list(j))
     split_value = 0
-    max = -sys.maxsize
+    min = sys.maxsize
     if len(part_list) == 0:
         return
     for split in part_list:
@@ -144,14 +140,13 @@ def handle_categorical_data(input_matrix, column_index, split_values, gini_value
         a = (len(split1) / rows) * gini1
         b = (len(split2) / rows) * gini2
         gini_a = a + b
-        diff = main_gini - gini_a
-        if diff > max:
-            max = diff
+        if gini_a < min:
+            min = gini_a
             split_value = split
         if len(unique) == 2:
             break
     split_values[column_index] = split_value
-    gini_values[column_index] = max
+    gini_values[column_index] = min
 
 
 """
@@ -161,7 +156,7 @@ def handle_categorical_data(input_matrix, column_index, split_values, gini_value
 
 def handle_numerical_data(input_matrix, column_index, split_values, gini_values):
     split_value = 0
-    max = -sys.maxsize
+    min = sys.maxsize
     temp_matrix = input_matrix.copy()
     temp_matrix = temp_matrix[temp_matrix[:, column_index].argsort()]
     rows = len(input_matrix)
@@ -175,12 +170,11 @@ def handle_numerical_data(input_matrix, column_index, split_values, gini_values)
         a = (len(index1) / rows) * gini1
         b = (len(index2) / rows) * gini2
         gini_a = a + b
-        diff = main_gini - gini_a
-        if diff > max:
-            max = diff
+        if gini_a < min:
+            min = gini_a
             split_value = temp_matrix[row][column_index]
     split_values[column_index] = split_value
-    gini_values[column_index] = max
+    gini_values[column_index] = min
 
 
 """
@@ -198,7 +192,7 @@ def compute_best_split(input_matrix, split_values, gini_values, column_list):
             handle_numerical_data(input_matrix, i, split_values, gini_values)
 
     gini_values = np.array(gini_values)
-    index = np.argmax(gini_values)
+    index = np.argmin(gini_values)
     criteria = split_values[index]
     return criteria, index
 
@@ -270,10 +264,10 @@ def main_method(records, old_list):
         return Node(None, None, None, None, value)
     else:
         if len(col_vals) < len(records[0])-1:
-            split_values = [-sys.maxsize for i in range(len(records[0])-1)]
-            gini_values = [-sys.maxsize for i in range(len(records[0])-1)]
+            split_values = [sys.maxsize for i in range(len(records[0])-1)]
+            gini_values = [sys.maxsize for i in range(len(records[0])-1)]
             criteria, column_index = compute_best_split(records, split_values, gini_values, col_vals)
-            if criteria == -sys.maxsize:
+            if criteria == sys.maxsize:
                 value = majority_class(records)
                 return Node(None, None, None, None, value)
             col_vals.append(column_index)
@@ -403,8 +397,6 @@ for i in range(folds):
     train_data_idx = set(range(len(matrix))).difference(test_data_idx)
     test_data_idx = list(test_data_idx)
     train_data_idx = list(train_data_idx)
-    test_data_idx.sort()
-    train_data_idx.sort()
     train_data = matrix[train_data_idx]
     test_data = matrix[test_data_idx]
 
