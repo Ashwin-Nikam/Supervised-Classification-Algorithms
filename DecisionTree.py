@@ -262,7 +262,7 @@ def main_method(records, old_list, current_depth):
     flag, value = same_class(records)
     if flag:
         return Node(None, None, None, None, value)
-    elif current_depth + 1 >= max_depth:
+    elif current_depth + 1 >= max_depth or len(records) <= min_records:   #Conditions added for pruning
         value = majority_class(records)
         return Node(None, None, None, None, value)
     else:
@@ -379,6 +379,7 @@ def calculate_each_test(root, test_data_idx):
 """
 
 max_depth = 5
+min_records = 10
 folds = 10
 part_len = int(len(matrix) / folds)
 metrics_avg = [0.0, 0.0, 0.0, 0.0]
