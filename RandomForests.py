@@ -107,8 +107,6 @@ def calculate_gini(split_matrix):
 ------------------------------------------------------------------------------------------------------------------------
 """
 
-main_gini = calculate_gini(matrix)
-
 
 def handle_categorical_data(input_matrix, column_index, split_values, gini_values):
     rows = len(input_matrix)

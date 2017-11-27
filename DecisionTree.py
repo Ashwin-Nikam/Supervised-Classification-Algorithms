@@ -42,7 +42,7 @@ def is_number(n):
 """
 
 
-file = open("project3_dataset2.txt")
+file = open("project3_dataset1.txt")
 lines = file.readlines()
 rows = len(lines)
 columns = len(lines[0].split("\t"))
@@ -102,6 +102,7 @@ def calculate_gini(split_matrix):
     gini = 1 - (probability0**2) - (probability1**2)
     return gini
 
+
 """
 ------------------------------------------------------------------------------------------------------------------------
 """
@@ -109,7 +110,7 @@ def calculate_gini(split_matrix):
 
 def handle_categorical_data(input_matrix, column_index, split_values, gini_values):
     rows = len(input_matrix)
-    column = input_matrix[:,column_index]
+    column = input_matrix[:, column_index]
     unique = np.unique(column)
     part_list = []
     for i in range(len(unique)):
@@ -160,14 +161,14 @@ def handle_numerical_data(input_matrix, column_index, split_values, gini_values)
     temp_matrix = temp_matrix[temp_matrix[:, column_index].argsort()]
     rows = len(input_matrix)
     for row in range(rows):
-        index1 = list(range(0, row))
-        index2 = list(range(row, rows))
+        index1 = range(0, row)
+        index2 = range(row, rows)
         split1 = temp_matrix[index1]
         split2 = temp_matrix[index2]
         gini1 = calculate_gini(split1)
         gini2 = calculate_gini(split2)
-        a = (len(index1) / rows) * gini1
-        b = (len(index2) / rows) * gini2
+        a = (len(split1) / rows) * gini1
+        b = (len(split2) / rows) * gini2
         gini_a = a + b
         if gini_a < min:
             min = gini_a
