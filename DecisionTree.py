@@ -99,7 +99,7 @@ def calculate_gini(split_matrix):
         num1 = 0
     probability0 = num0/den
     probability1 = num1/den
-    gini = 1 - (probability0**2) - (probability1**2)
+    gini = 1 - ((probability0**2) + (probability1**2))
     return gini
 
 
@@ -255,12 +255,15 @@ def split(criteria, column_index, input_matrix):
 """
 
 
-def main_method(records, old_list):
+def main_method(records, old_list, current_depth):
     if len(records) == 0:
         return None
     col_vals = old_list.copy()
     flag, value = same_class(records)
     if flag:
+        return Node(None, None, None, None, value)
+    elif current_depth + 1 >= max_depth:
+        value = majority_class(records)
         return Node(None, None, None, None, value)
     else:
         if len(col_vals) < len(records[0])-1:
@@ -273,8 +276,8 @@ def main_method(records, old_list):
             col_vals.append(column_index)
             node = Node(criteria, None, None, column_index, None)
             left_set, right_set = split(criteria, column_index, records)
-            node.left = main_method(left_set, col_vals)
-            node.right = main_method(right_set, col_vals)
+            node.left = main_method(left_set, col_vals, current_depth + 1)
+            node.right = main_method(right_set, col_vals, current_depth + 1)
             return node
         else:
             value = majority_class(records)
@@ -375,7 +378,7 @@ def calculate_each_test(root, test_data_idx):
 ------------------------------------------------------------------------------------------------------------------------
 """
 
-
+max_depth = 5
 folds = 10
 part_len = int(len(matrix) / folds)
 metrics_avg = [0.0, 0.0, 0.0, 0.0]
@@ -397,7 +400,7 @@ for i in range(folds):
     train_data = matrix[train_data_idx]
     test_data = matrix[test_data_idx]
 
-    root = main_method(train_data, [])
+    root = main_method(train_data, [], 0)
     class_list = calculate_each_test(root, test_data_idx)
     print("Fold: ", i + 1)
     accuracy, precision, recall, f1_measure = calculate_accuracy(class_list, test_data)

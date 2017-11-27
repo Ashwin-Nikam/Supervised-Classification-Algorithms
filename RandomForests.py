@@ -69,7 +69,7 @@ for i in range(len(matrix[0])):
     elif status:
         mainArr.append("Numerical")
     else:
-        column = matrix[:,i]
+        column = matrix[:, i]
         d = dict([(y, x) for x, y in enumerate(sorted(set(column)))])
         main_dictionary[i] = d
         mainArr.append("Categorical")
