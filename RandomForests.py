@@ -121,7 +121,7 @@ def handle_categorical_data(input_matrix, column_index, split_values, gini_value
              if (len(j) > 0):
                  part_list.append(list(j))
     split_value = 0
-    max = -sys.maxsize
+    min = sys.maxsize
     if len(part_list) == 0:
         return
     for split in part_list:
@@ -142,14 +142,13 @@ def handle_categorical_data(input_matrix, column_index, split_values, gini_value
         a = (len(split1) / rows) * gini1
         b = (len(split2) / rows) * gini2
         gini_a = a + b
-        diff = main_gini - gini_a
-        if diff > max:
-            max = diff
+        if gini_a < min:
+            min = gini_a
             split_value = split
         if len(unique) == 2:
             break
     split_values[column_index] = split_value
-    gini_values[column_index] = max
+    gini_values[column_index] = min
 
 
 """
@@ -159,7 +158,7 @@ def handle_categorical_data(input_matrix, column_index, split_values, gini_value
 
 def handle_numerical_data(input_matrix, column_index, split_values, gini_values):
     split_value = 0
-    max = -sys.maxsize
+    min = sys.maxsize
     temp_matrix = input_matrix.copy()
     temp_matrix = temp_matrix[temp_matrix[:, column_index].argsort()]
     rows = len(input_matrix)
@@ -173,12 +172,11 @@ def handle_numerical_data(input_matrix, column_index, split_values, gini_values)
         a = (len(split1) / rows) * gini1
         b = (len(split2) / rows) * gini2
         gini_a = a + b
-        diff = main_gini - gini_a
-        if diff > max:
-            max = diff
+        if gini_a < min:
+            min = gini_a
             split_value = temp_matrix[row][column_index]
     split_values[column_index] = split_value
-    gini_values[column_index] = max
+    gini_values[column_index] = min
 
 
 """
@@ -198,7 +196,7 @@ def compute_best_split(input_matrix, split_values, gini_values, column_list):
             handle_numerical_data(input_matrix, feature_index, split_values, gini_values)
 
     gini_values = np.array(gini_values)
-    index = np.argmax(gini_values)
+    index = np.argmin(gini_values)
     criteria = split_values[index]
     return criteria, index
 
@@ -270,16 +268,16 @@ def main_method(records, old_list):
         return Node(None, None, None, None, value)
     else:
         if len(col_vals) < m:
-            split_values = [-sys.maxsize for i in range(len(records[0])-1)]
-            gini_values = [-sys.maxsize for i in range(len(records[0])-1)]
+            split_values = [sys.maxsize for i in range(len(records[0])-1)]
+            gini_values = [sys.maxsize for i in range(len(records[0])-1)]
             criteria, column_index = compute_best_split(records, split_values, gini_values, col_vals)
-            if criteria == -sys.maxsize:
+            if criteria == sys.maxsize:
                 value = majority_class(records)
                 return Node(None, None, None, None, value)
             if mainArr[column_index] == "Categorical":
                 col_vals.append(column_index)
             elif mainArr[column_index] == "Numerical":
-                col_vals.append(-sys.maxsize)
+                col_vals.append(sys.maxsize)
             node = Node(criteria, None, None, column_index, None)
             left_set, right_set = split(criteria, column_index, records)
             node.left = main_method(left_set, col_vals)
