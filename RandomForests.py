@@ -42,7 +42,7 @@ def is_number(n):
 """
 
 
-file = open("project3_dataset1.txt")
+file = open("project3_dataset2.txt")
 lines = file.readlines()
 rows = len(lines)
 columns = len(lines[0].split("\t"))
@@ -396,9 +396,6 @@ for i in range(folds): #For each fold
     train_data_idx = set(range(len(matrix))).difference(test_data_idx)
     test_data_idx = list(test_data_idx)
     train_data_idx = list(train_data_idx)
-    train_data_idx.sort()
-    test_data_idx.sort()
-    print(test_data_idx[0], " to ", test_data_idx[len(test_data_idx) - 1])
     train_data = matrix[train_data_idx] #Train data which needs to be sampled 10 times
     test_data = matrix[test_data_idx]   #Fixed test data
 
