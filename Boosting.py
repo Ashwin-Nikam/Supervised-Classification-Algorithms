@@ -403,10 +403,10 @@ def create_tree(records, old_list, current_depth):
             col_vals.append(column_index)
             node = Node(criteria, None, None, column_index, None)
             left_set, right_set = split(criteria, column_index, records)
-            if len(left_set) is 0:
+            if len(left_set) == 0:
                 value = majority_class(right_set)
                 return Node(None, None, None, None, value)
-            elif len(right_set) is 0:
+            elif len(right_set) == 0:
                 value = majority_class(left_set)
                 return Node(None, None, None, None, value)
             else:
