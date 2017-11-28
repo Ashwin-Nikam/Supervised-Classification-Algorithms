@@ -183,15 +183,14 @@ def handle_numerical_data(input_matrix, column_index, split_values, gini_values)
 
 
 def compute_best_split(input_matrix, split_values, gini_values, column_list):
-    random_features = random.sample(range(0, len(input_matrix[0])), m)
-    list.sort(random_features)
+    random_features = random.sample(range(0, len(input_matrix[0])-1), m)
     for feature_index in random_features:
-        if feature_index in column_list:
+        if mainArr[feature_index] == "Numerical":
+            handle_numerical_data(input_matrix, feature_index, split_values, gini_values)
+        elif feature_index in column_list:
             continue
         elif mainArr[feature_index] == "Categorical":
             handle_categorical_data(input_matrix, feature_index, split_values, gini_values)
-        elif mainArr[feature_index] == "Numerical":
-            handle_numerical_data(input_matrix, feature_index, split_values, gini_values)
 
     gini_values = np.array(gini_values)
     index = np.argmin(gini_values)
@@ -264,8 +263,11 @@ def main_method(records, old_list):
     flag, value = same_class(records)
     if flag:
         return Node(None, None, None, None, value)
+    elif len(records) <= 3:
+        value = majority_class(records)
+        return Node(None, None, None, None, value)
     else:
-        if len(col_vals) < m:
+        if len(col_vals) < len(records[0]) - 1:
             split_values = [sys.maxsize for i in range(len(records[0])-1)]
             gini_values = [sys.maxsize for i in range(len(records[0])-1)]
             criteria, column_index = compute_best_split(records, split_values, gini_values, col_vals)
@@ -372,37 +374,63 @@ def calculate_each_test(root, test_data_idx):
 ------------------------------------------------------------------------------------------------------------------------
 """
 
-number_of_trees = 10
+number_of_trees = 5
 m = 3
-num_training = 400
-root_list = []
-main_class_list = []
-test_data_idx = range(400, len(matrix))
-for i in range(number_of_trees):
-    train_data_idx = []
-    for k in range(num_training):
-        train_data_idx.append(random.randint(0, num_training))
-    training_data = matrix[train_data_idx]
-    root_list.append(main_method(training_data, []))
-    class_list = calculate_each_test(root_list[i], test_data_idx)
-    main_class_list.append(class_list)
 
-main_class_list = np.array(main_class_list, dtype=np.float64)
-final_class_list = []
-for i in range(len(main_class_list[0])):
-    class_column = main_class_list[:, i]
-    unique = np.unique(class_column)
-    if len(unique) == 1:
-        final_class_list.append(unique[0])
+folds = 5
+part_len = int(len(matrix) / folds)
+metrics_avg = [0.0, 0.0, 0.0, 0.0]
+train_data_idx = set()
+accuracy_list = []
+precision_list = []
+recall_list = []
+f1_measure_list = []
+for i in range(folds): #For each fold
+    print("Fold ", i + 1)
+    if i != folds - 1:
+        start = (i * part_len)
+        end = start + part_len
+        test_data_idx = set(range(start, end))
     else:
-        count1 = np.count_nonzero(class_column == unique[0])
-        count2 = np.count_nonzero(class_column == unique [1])
-        if count1 > count2:
+        test_data_idx = set(range(i * part_len, len(matrix)))
+    train_data_idx = set(range(len(matrix))).difference(test_data_idx)
+    test_data_idx = list(test_data_idx)
+    train_data_idx = list(train_data_idx)
+    train_data = matrix[train_data_idx] #Train data which needs to be sampled 10 times
+    test_data = matrix[test_data_idx] #Fixed test data
+
+    root_list = []
+    main_class_list = []
+    sample_train_data_idx = []
+    for j in range(number_of_trees):
+        for k in range(len(train_data_idx)):
+            sample_train_data_idx.append(random.randint(train_data_idx[0],
+                                                    train_data_idx[len(train_data_idx)-1]))
+        sample_train_data = matrix[sample_train_data_idx]
+        root_list.append(main_method(sample_train_data, []))
+        print("Root height ", height(root_list[j]))
+
+    for root in root_list:
+        class_list = calculate_each_test(root, test_data_idx)
+        main_class_list.append(class_list)
+
+    main_class_list = np.array(main_class_list, dtype=np.float64)
+    final_class_list = []
+    for i in range(len(main_class_list[0])):
+        class_column = main_class_list[:, i]
+        unique = np.unique(class_column)
+        if len(unique) == 1:
             final_class_list.append(unique[0])
         else:
-            final_class_list.append(unique[1])
-accuracy, precision, recall, f1_measure = calculate_accuracy(final_class_list, test_data_idx)
-print("Accuracy :", accuracy)
+            count1 = np.count_nonzero(class_column == unique[0])
+            count2 = np.count_nonzero(class_column == unique[1])
+            if count1 > count2:
+                final_class_list.append(unique[0])
+            else:
+                final_class_list.append(unique[1])
+    accuracy, precision, recall, f1_measure = calculate_accuracy(final_class_list, test_data_idx)
+    print("Accuracy :", accuracy)
+
 
 """
 ------------------------------------------------------------------------------------------------------------------------
