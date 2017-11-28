@@ -2,7 +2,7 @@ import numpy as np
 import itertools
 import sys
 from queue import *
-
+import math
 
 """
 ------------------------------------------------------------------------------------------------------------------------
@@ -42,7 +42,7 @@ def is_number(n):
 """
 
 
-file = open("project3_dataset1.txt")
+file = open("project3_dataset2.txt")
 lines = file.readlines()
 rows = len(lines)
 columns = len(lines[0].split("\t"))
@@ -284,9 +284,6 @@ def main_method(records, old_list, current_depth):
                 node.left = main_method(left_set, col_vals, current_depth + 1)
                 node.right = main_method(right_set, col_vals, current_depth + 1)
                 return node
-            node.left = main_method(left_set, col_vals, current_depth + 1)
-            node.right = main_method(right_set, col_vals, current_depth + 1)
-            return node
         else:
             value = majority_class(records)
             return Node(None, None, None, None, value)
@@ -386,45 +383,82 @@ def calculate_each_test(root, test_data_idx):
 ------------------------------------------------------------------------------------------------------------------------
 """
 
-max_depth = 5
-min_records = 10
-folds = 10
-part_len = int(len(matrix) / folds)
-metrics_avg = [0.0, 0.0, 0.0, 0.0]
-train_data_idx = set()
-accuracy_list = []
-precision_list = []
-recall_list = []
-f1_measure_list = []
-for i in range(folds):
-    if i != folds - 1:
-        start = (i * part_len)
-        end = start + part_len
-        test_data_idx = set(range(start, end))
-    else:
-        test_data_idx = set(range(i * part_len, len(matrix)))
-    train_data_idx = set(range(len(matrix))).difference(test_data_idx)
-    test_data_idx = list(test_data_idx)
-    train_data_idx = list(train_data_idx)
-    train_data = matrix[train_data_idx]
-    test_data = matrix[test_data_idx]
 
-    root = main_method(train_data, [], 0)
-    class_list = calculate_each_test(root, test_data_idx)
-    print("Fold: ", i + 1)
-    accuracy, precision, recall, f1_measure = calculate_accuracy(class_list, test_data)
-    accuracy_list.append(accuracy)
-    precision_list.append(precision)
-    recall_list.append(recall)
-    f1_measure_list.append(f1_measure)
-    print(accuracy)
+def calculate_model_error(class_list, train_data, weight_column):
+    sum = 0
+    classified_indices = []
+    original_class_list = train_data[:, len(train_data[0])-1]
+    for i in range(len(class_list)):
+        if class_list[i] != original_class_list[i]:
+            sum += weight_column[i]
+        else:
+            classified_indices.append(i)
+    return sum, classified_indices
 
-accuracy = np.sum(accuracy_list)/len(accuracy_list)
-precision = np.sum(precision_list)/len(precision_list)
-recall = np.sum(recall_list)/len(recall_list)
-f1_measure = np.sum(f1_measure_list)/len(f1_measure_list)
-print("Accuracy: ",accuracy, "Precision: ", precision, "Recall: ", recall,
-"F1-measure: ", f1_measure)
+
+"""
+------------------------------------------------------------------------------------------------------------------------
+"""
+
+
+def classify_test_data(test_data, forest, error_list):
+    weight0 = 0
+    weight1 = 0
+    class_list = []
+    for k in range(len(test_data)):
+        for i in range(len(forest)):
+            classifier_weight = math.log10((1-error_list[i]) / (error_list[i]))
+            tuple = test_data[k]
+            class_prediction = traverse_tree(forest[i], tuple)
+            if class_prediction is 0:
+                weight0 += classifier_weight
+            else:
+                weight1 += classifier_weight
+        if weight1 > weight0:
+            class_list.append(1)
+        else:
+            class_list.append(0)
+    return class_list
+
+
+"""
+------------------------------------------------------------------------------------------------------------------------
+"""
+
+train_data_idx = list(range(0, 400))
+test_data_idx = list(range(400, len(matrix)))
+train_data = matrix[train_data_idx]
+test_data = matrix[test_data_idx]
+
+num_bags = 5
+
+weight_column = [1 / len(train_data_idx) for x in range(len(train_data_idx))]
+forest = []
+error_list = []
+for i in range(num_bags):
+    error = sys.maxsize
+    classified_indices = []
+    root = None
+    while error > 0.5:
+        sample_train_idx = np.random.choice(train_data_idx, len(train_data_idx), replace=True, p=weight_column)
+        sample_train_data = matrix[sample_train_idx]
+        root = main_method(sample_train_data, [], 0)
+        class_list = calculate_each_test(root, train_data_idx)
+        error, classified_indices = calculate_model_error(class_list, train_data, weight_column)
+    error_list.append(error)
+    forest.append(root)
+    old_sum = np.sum(weight_column)
+    for index in classified_indices:
+        weight_column[index] *= (error/(1-error))
+    new_sum = np.sum(weight_column)
+    for k in range(len(weight_column)):
+        weight_column[k] *= (old_sum/new_sum)
+class_list = classify_test_data(test_data, forest, error_list)
+accuracy, precision, recall, f1_measure = calculate_accuracy(class_list, test_data)
+print(accuracy)
+print(precision)
+print(recall)
+print(f1_measure)
 
 
 """

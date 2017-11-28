@@ -263,7 +263,7 @@ def main_method(records, old_list, current_depth):
     flag, value = same_class(records)
     if flag:
         return Node(None, None, None, None, value)
-    elif current_depth + 1 >= max_depth or len(records) <= min_records:   #Conditions added for pruning
+    elif current_depth + 1 >= max_depth or len(records) <= min_records:   # Conditions added for pruning
         value = majority_class(records)
         return Node(None, None, None, None, value)
     else:
@@ -373,7 +373,6 @@ def calculate_each_test(root, test_data_idx):
         value = traverse_tree(root, query)
         class_list.append(value)
     return class_list
-
 
 
 """

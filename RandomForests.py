@@ -42,7 +42,7 @@ def is_number(n):
 """
 
 
-file = open("project3_dataset2.txt")
+file = open("project3_dataset1.txt")
 lines = file.readlines()
 rows = len(lines)
 columns = len(lines[0].split("\t"))
@@ -257,8 +257,6 @@ def split(criteria, column_index, input_matrix):
 
 
 def main_method(records, old_list):
-    if len(records) == 0:
-        return None
     col_vals = old_list.copy()
     flag, value = same_class(records)
     if flag:
@@ -280,6 +278,16 @@ def main_method(records, old_list):
                 col_vals.append(sys.maxsize)
             node = Node(criteria, None, None, column_index, None)
             left_set, right_set = split(criteria, column_index, records)
+            if len(left_set) is 0:
+                value = majority_class(right_set)
+                return Node(None, None, None, None, value)
+            elif len(right_set) is 0:
+                value = majority_class(left_set)
+                return Node(None, None, None, None, value)
+            else:
+                node.left = main_method(left_set, col_vals)
+                node.right = main_method(right_set, col_vals)
+                return node
             node.left = main_method(left_set, col_vals)
             node.right = main_method(right_set, col_vals)
             return node
