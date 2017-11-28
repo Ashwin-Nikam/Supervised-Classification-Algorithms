@@ -42,7 +42,7 @@ def is_number(n):
 """
 
 
-file = open("project3_dataset1.txt")
+file = open("project3_dataset2.txt")
 lines = file.readlines()
 rows = len(lines)
 columns = len(lines[0].split("\t"))
@@ -350,9 +350,6 @@ def create_tree(records, old_list, current_depth):
     flag, value = same_class(records)
     if flag:
         return Node(None, None, None, None, value)
-    # elif current_depth + 1 >= max_depth or len(records) <= min_records:   # Conditions added for pruning
-    #     value = majority_class(records)
-    #     return Node(None, None, None, None, value)
     else:
         if len(col_vals) < len(records[0])-1:
             split_values = [sys.maxsize for i in range(len(records[0])-1)]
