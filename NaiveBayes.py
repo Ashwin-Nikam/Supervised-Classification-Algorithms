@@ -10,7 +10,7 @@ def is_number(n):
     return True, n
 
 
-file = open("project3_dataset2.txt")
+file = open("project3_dataset1.txt")
 lines = file.readlines()
 rows = len(lines)
 columns = len(lines[0].split("\t"))
@@ -172,6 +172,7 @@ for i in range(folds):
     precision_list.append(precision)
     recall_list.append(recall)
     f1_measure_list.append(f1_measure)
+    print("Accuracy ", accuracy)
 
 accuracy = np.sum(accuracy_list)/len(accuracy_list)
 precision = np.sum(precision_list)/len(precision_list)
