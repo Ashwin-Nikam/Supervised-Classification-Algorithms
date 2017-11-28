@@ -42,7 +42,7 @@ def is_number(n):
 """
 
 
-file = open("project3_dataset2.txt")
+file = open("project3_dataset1.txt")
 lines = file.readlines()
 rows = len(lines)
 columns = len(lines[0].split("\t"))
@@ -376,8 +376,8 @@ def calculate_each_test(root, test_data_idx):
 
 number_of_trees = 5
 m = 3
+folds = 10
 
-folds = 5
 part_len = int(len(matrix) / folds)
 metrics_avg = [0.0, 0.0, 0.0, 0.0]
 train_data_idx = set()
@@ -396,16 +396,19 @@ for i in range(folds): #For each fold
     train_data_idx = set(range(len(matrix))).difference(test_data_idx)
     test_data_idx = list(test_data_idx)
     train_data_idx = list(train_data_idx)
+    train_data_idx.sort()
+    test_data_idx.sort()
+    print(test_data_idx[0], " to ", test_data_idx[len(test_data_idx) - 1])
     train_data = matrix[train_data_idx] #Train data which needs to be sampled 10 times
-    test_data = matrix[test_data_idx] #Fixed test data
+    test_data = matrix[test_data_idx]   #Fixed test data
 
     root_list = []
     main_class_list = []
     sample_train_data_idx = []
     for j in range(number_of_trees):
-        for k in range(len(train_data_idx)):
-            sample_train_data_idx.append(random.randint(train_data_idx[0],
-                                                    train_data_idx[len(train_data_idx)-1]))
+        sample_train_data_idx = [random.randint(train_data_idx[0],
+                                                train_data_idx[len(train_data_idx)-1])
+                                 for k in range(len(train_data_idx))]
         sample_train_data = matrix[sample_train_data_idx]
         root_list.append(main_method(sample_train_data, []))
         print("Root height ", height(root_list[j]))
@@ -429,7 +432,19 @@ for i in range(folds): #For each fold
             else:
                 final_class_list.append(unique[1])
     accuracy, precision, recall, f1_measure = calculate_accuracy(final_class_list, test_data_idx)
+    accuracy_list.append(accuracy)
+    precision_list.append(precision)
+    recall_list.append(recall)
+    f1_measure_list.append(f1_measure)
     print("Accuracy :", accuracy)
+
+print("********** Final answer ************")
+accuracy = np.sum(accuracy_list)/len(accuracy_list)
+precision = np.sum(precision_list)/len(precision_list)
+recall = np.sum(recall_list)/len(recall_list)
+f1_measure = np.sum(f1_measure_list)/len(f1_measure_list)
+print("Accuracy: ",accuracy, "Precision: ", precision, "Recall: ", recall,
+"F1-measure: ", f1_measure)
 
 
 """
