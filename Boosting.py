@@ -363,15 +363,15 @@ def calculate_model_error(class_list, train_data, weight_column):
 
 
 def classify_test_data(test_data, forest, error_list):
-    weight0 = 0
-    weight1 = 0
     class_list = []
     for k in range(len(test_data)):
+        weight0 = 0
+        weight1 = 0
         for i in range(len(forest)):
-            classifier_weight = math.log10((1-error_list[i]) / (error_list[i]))
+            classifier_weight = math.log((1-error_list[i]) / (error_list[i]))
             tuple = test_data[k]
             class_prediction = traverse_tree(forest[i], tuple)
-            if class_prediction is 0:
+            if class_prediction == 0:
                 weight0 += classifier_weight
             else:
                 weight1 += classifier_weight
@@ -428,7 +428,7 @@ test_data_idx = list(range(400, len(matrix)))
 train_data = matrix[train_data_idx]
 test_data = matrix[test_data_idx]
 
-num_bags = 5
+num_bags = 10
 
 folds = 10
 part_len = int(len(matrix) / folds)
@@ -462,6 +462,7 @@ for i in range(folds):
             sample_train_idx = np.random.choice(train_data_idx, len(train_data_idx), replace=True, p=weight_column)
             sample_train_data = matrix[sample_train_idx]
             root = create_tree(sample_train_data, [], 0)
+            print("Tree created!")
             class_list = calculate_each_test(root, train_data_idx)
             error, classified_indices = calculate_model_error(class_list, train_data, weight_column)
         error_list.append(error)
