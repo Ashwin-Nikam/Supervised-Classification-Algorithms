@@ -263,11 +263,11 @@ def main_method(records, old_list):
     flag, value = same_class(records)
     if flag:
         return Node(None, None, None, None, value)
-    elif len(records) <= 3:
+    elif len(records) <= 3:                         # Check if node becomes too small (<= 3 examples)
         value = majority_class(records)
         return Node(None, None, None, None, value)
     else:
-        if len(col_vals) < len(records[0]) - 1:
+        if len(col_vals) < len(records[0]) - 1:     # Check if the height of tree exceeds no. of features.
             split_values = [sys.maxsize for i in range(len(records[0])-1)]
             gini_values = [sys.maxsize for i in range(len(records[0])-1)]
             criteria, column_index = compute_best_split(records, split_values, gini_values, col_vals)
@@ -374,9 +374,9 @@ def calculate_each_test(root, test_data_idx):
 ------------------------------------------------------------------------------------------------------------------------
 """
 
-number_of_trees = 5
+number_of_trees = 5     # Number of trees in a forest
 m = 3
-folds = 10
+folds = 10              # Number of forests.
 
 part_len = int(len(matrix) / folds)
 metrics_avg = [0.0, 0.0, 0.0, 0.0]
@@ -385,7 +385,7 @@ accuracy_list = []
 precision_list = []
 recall_list = []
 f1_measure_list = []
-for i in range(folds): #For each fold
+for i in range(folds):
     print("Fold ", i + 1)
     if i != folds - 1:
         start = (i * part_len)
@@ -396,12 +396,18 @@ for i in range(folds): #For each fold
     train_data_idx = set(range(len(matrix))).difference(test_data_idx)
     test_data_idx = list(test_data_idx)
     train_data_idx = list(train_data_idx)
-    train_data = matrix[train_data_idx] #Train data which needs to be sampled 10 times
-    test_data = matrix[test_data_idx]   #Fixed test data
+    train_data = matrix[train_data_idx]     # Train data which needs to be sampled 10 times
+    test_data = matrix[test_data_idx]       # Fixed test data
 
     root_list = []
     main_class_list = []
     sample_train_data_idx = []
+
+    """
+    Bagging to get n samples from the fixed data where n is the
+    number of trees to be generated in a forest.
+    """
+
     for j in range(number_of_trees):
         sample_train_data_idx = [random.randint(train_data_idx[0],
                                                 train_data_idx[len(train_data_idx)-1])
@@ -410,9 +416,18 @@ for i in range(folds): #For each fold
         root_list.append(main_method(sample_train_data, []))
         print("Root height ", height(root_list[j]))
 
+    """
+    Calculate accuracy of each tree in the forest.
+    """
+
     for root in root_list:
         class_list = calculate_each_test(root, test_data_idx)
         main_class_list.append(class_list)
+
+    """
+    Calculate accuracy of the entire forest.
+    This is done by performing voting.
+    """
 
     main_class_list = np.array(main_class_list, dtype=np.float64)
     final_class_list = []
@@ -434,6 +449,12 @@ for i in range(folds): #For each fold
     recall_list.append(recall)
     f1_measure_list.append(f1_measure)
     print("Accuracy :", accuracy)
+
+"""
+Calculate average accuracy of the 10 folds or 
+10 forests in this case. Here each forest has 
+computed accuracy for different test data.
+"""
 
 print("********** Final answer ************")
 accuracy = np.sum(accuracy_list)/len(accuracy_list)
