@@ -42,7 +42,7 @@ def is_number(n):
 """
 
 
-file = open("project3_dataset2.txt")
+file = open("project3_dataset1.txt")
 lines = file.readlines()
 rows = len(lines)
 columns = len(lines[0].split("\t"))
@@ -428,7 +428,7 @@ test_data_idx = list(range(400, len(matrix)))
 train_data = matrix[train_data_idx]
 test_data = matrix[test_data_idx]
 
-num_bags = 10
+num_bags = 5
 
 folds = 10
 part_len = int(len(matrix) / folds)
