@@ -255,45 +255,6 @@ def split(criteria, column_index, input_matrix):
 """
 
 
-def main_method(records, old_list, current_depth):
-    col_vals = old_list.copy()
-    flag, value = same_class(records)
-    if flag:
-        return Node(None, None, None, None, value)
-    # elif current_depth + 1 >= max_depth or len(records) <= min_records:   # Conditions added for pruning
-    #     value = majority_class(records)
-    #     return Node(None, None, None, None, value)
-    else:
-        if len(col_vals) < len(records[0])-1:
-            split_values = [sys.maxsize for i in range(len(records[0])-1)]
-            gini_values = [sys.maxsize for i in range(len(records[0])-1)]
-            criteria, column_index = compute_best_split(records, split_values, gini_values, col_vals)
-            if criteria == sys.maxsize:
-                value = majority_class(records)
-                return Node(None, None, None, None, value)
-            col_vals.append(column_index)
-            node = Node(criteria, None, None, column_index, None)
-            left_set, right_set = split(criteria, column_index, records)
-            if len(left_set) is 0:
-                value = majority_class(right_set)
-                return Node(None, None, None, None, value)
-            elif len(right_set) is 0:
-                value = majority_class(left_set)
-                return Node(None, None, None, None, value)
-            else:
-                node.left = main_method(left_set, col_vals, current_depth + 1)
-                node.right = main_method(right_set, col_vals, current_depth + 1)
-                return node
-        else:
-            value = majority_class(records)
-            return Node(None, None, None, None, value)
-
-
-"""
-------------------------------------------------------------------------------------------------------------------------
-"""
-
-
 def print_tree(root):
     q = Queue(maxsize=0)
     q.put(root)
@@ -425,41 +386,106 @@ def classify_test_data(test_data, forest, error_list):
 ------------------------------------------------------------------------------------------------------------------------
 """
 
-train_data_idx = list(range(0, 400))
+
+def create_tree(records, old_list, current_depth):
+    col_vals = old_list.copy()
+    flag, value = same_class(records)
+    if flag:
+        return Node(None, None, None, None, value)
+    else:
+        if len(col_vals) < len(records[0])-1:
+            split_values = [sys.maxsize for i in range(len(records[0])-1)]
+            gini_values = [sys.maxsize for i in range(len(records[0])-1)]
+            criteria, column_index = compute_best_split(records, split_values, gini_values, col_vals)
+            if criteria == sys.maxsize:
+                value = majority_class(records)
+                return Node(None, None, None, None, value)
+            col_vals.append(column_index)
+            node = Node(criteria, None, None, column_index, None)
+            left_set, right_set = split(criteria, column_index, records)
+            if len(left_set) is 0:
+                value = majority_class(right_set)
+                return Node(None, None, None, None, value)
+            elif len(right_set) is 0:
+                value = majority_class(left_set)
+                return Node(None, None, None, None, value)
+            else:
+                node.left = create_tree(left_set, col_vals, current_depth + 1)
+                node.right = create_tree(right_set, col_vals, current_depth + 1)
+                return node
+        else:
+            value = majority_class(records)
+            return Node(None, None, None, None, value)
+
+
+"""
+------------------------------------------------------------------------------------------------------------------------
+"""
+
+
+train_data_idx = list(range(100, 00))
 test_data_idx = list(range(400, len(matrix)))
 train_data = matrix[train_data_idx]
 test_data = matrix[test_data_idx]
 
 num_bags = 5
 
-weight_column = [1 / len(train_data_idx) for x in range(len(train_data_idx))]
-forest = []
-error_list = []
-for i in range(num_bags):
-    error = sys.maxsize
-    classified_indices = []
-    root = None
-    while error > 0.5:
-        sample_train_idx = np.random.choice(train_data_idx, len(train_data_idx), replace=True, p=weight_column)
-        sample_train_data = matrix[sample_train_idx]
-        root = main_method(sample_train_data, [], 0)
-        class_list = calculate_each_test(root, train_data_idx)
-        error, classified_indices = calculate_model_error(class_list, train_data, weight_column)
-    error_list.append(error)
-    forest.append(root)
-    old_sum = np.sum(weight_column)
-    for index in classified_indices:
-        weight_column[index] *= (error/(1-error))
-    new_sum = np.sum(weight_column)
-    for k in range(len(weight_column)):
-        weight_column[k] *= (old_sum/new_sum)
-class_list = classify_test_data(test_data, forest, error_list)
-accuracy, precision, recall, f1_measure = calculate_accuracy(class_list, test_data)
-print(accuracy)
-print(precision)
-print(recall)
-print(f1_measure)
+folds = 10
+part_len = int(len(matrix) / folds)
+metrics_avg = [0.0, 0.0, 0.0, 0.0]
+train_data_idx = set()
+accuracy_list = []
+precision_list = []
+recall_list = []
+f1_measure_list = []
+for i in range(folds):
+    print("Fold ", i + 1)
+    if i != folds - 1:
+        start = (i * part_len)
+        end = start + part_len
+        test_data_idx = set(range(start, end))
+    else:
+        test_data_idx = set(range(i * part_len, len(matrix)))
+    train_data_idx = set(range(len(matrix))).difference(test_data_idx)
+    test_data_idx = list(test_data_idx)
+    train_data_idx = list(train_data_idx)
+    train_data = matrix[train_data_idx]
+    test_data = matrix[test_data_idx]
+    weight_column = [1 / len(train_data_idx) for x in range(len(train_data_idx))]
+    forest = []
+    error_list = []
+    for i in range(num_bags):
+        error = sys.maxsize
+        classified_indices = []
+        root = None
+        while error > 0.5:
+            sample_train_idx = np.random.choice(train_data_idx, len(train_data_idx), replace=True, p=weight_column)
+            sample_train_data = matrix[sample_train_idx]
+            root = create_tree(sample_train_data, [], 0)
+            class_list = calculate_each_test(root, train_data_idx)
+            error, classified_indices = calculate_model_error(class_list, train_data, weight_column)
+        error_list.append(error)
+        forest.append(root)
+        old_sum = np.sum(weight_column)
+        for index in classified_indices:
+            weight_column[index] *= (error/(1-error))
+        new_sum = np.sum(weight_column)
+        for k in range(len(weight_column)):
+            weight_column[k] *= (old_sum/new_sum)
+    class_list = classify_test_data(test_data, forest, error_list)
+    accuracy, precision, recall, f1_measure = calculate_accuracy(class_list, test_data)
+    accuracy_list.append(accuracy)
+    precision_list.append(precision)
+    recall_list.append(recall)
+    f1_measure_list.append(f1_measure)
+    print("Accuracy ",accuracy)
 
+accuracy = np.sum(accuracy_list)/len(accuracy_list)
+precision = np.sum(precision_list)/len(precision_list)
+recall = np.sum(recall_list)/len(recall_list)
+f1_measure = np.sum(f1_measure_list)/len(f1_measure_list)
+print("Accuracy: ",accuracy, "Precision: ", precision, "Recall: ", recall,
+"F1-measure: ", f1_measure)
 
 """
 ------------------------------------------------------------------------------------------------------------------------

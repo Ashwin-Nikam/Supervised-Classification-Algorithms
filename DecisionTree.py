@@ -255,48 +255,6 @@ def split(criteria, column_index, input_matrix):
 """
 
 
-def main_method(records, old_list, current_depth):
-    col_vals = old_list.copy()
-    flag, value = same_class(records)
-    if flag:
-        return Node(None, None, None, None, value)
-    # elif current_depth + 1 >= max_depth or len(records) <= min_records:   # Conditions added for pruning
-    #     value = majority_class(records)
-    #     return Node(None, None, None, None, value)
-    else:
-        if len(col_vals) < len(records[0])-1:
-            split_values = [sys.maxsize for i in range(len(records[0])-1)]
-            gini_values = [sys.maxsize for i in range(len(records[0])-1)]
-            criteria, column_index = compute_best_split(records, split_values, gini_values, col_vals)
-            if criteria == sys.maxsize:
-                value = majority_class(records)
-                return Node(None, None, None, None, value)
-            col_vals.append(column_index)
-            node = Node(criteria, None, None, column_index, None)
-            left_set, right_set = split(criteria, column_index, records)
-            if len(left_set) is 0:
-                value = majority_class(right_set)
-                return Node(None, None, None, None, value)
-            elif len(right_set) is 0:
-                value = majority_class(left_set)
-                return Node(None, None, None, None, value)
-            else:
-                node.left = main_method(left_set, col_vals, current_depth + 1)
-                node.right = main_method(right_set, col_vals, current_depth + 1)
-                return node
-            node.left = main_method(left_set, col_vals, current_depth + 1)
-            node.right = main_method(right_set, col_vals, current_depth + 1)
-            return node
-        else:
-            value = majority_class(records)
-            return Node(None, None, None, None, value)
-
-
-"""
-------------------------------------------------------------------------------------------------------------------------
-"""
-
-
 def print_tree(root):
     q = Queue(maxsize=0)
     q.put(root)
@@ -386,8 +344,48 @@ def calculate_each_test(root, test_data_idx):
 ------------------------------------------------------------------------------------------------------------------------
 """
 
-max_depth = 5
-min_records = 10
+
+def create_tree(records, old_list, current_depth):
+    col_vals = old_list.copy()
+    flag, value = same_class(records)
+    if flag:
+        return Node(None, None, None, None, value)
+    # elif current_depth + 1 >= max_depth or len(records) <= min_records:   # Conditions added for pruning
+    #     value = majority_class(records)
+    #     return Node(None, None, None, None, value)
+    else:
+        if len(col_vals) < len(records[0])-1:
+            split_values = [sys.maxsize for i in range(len(records[0])-1)]
+            gini_values = [sys.maxsize for i in range(len(records[0])-1)]
+            criteria, column_index = compute_best_split(records, split_values, gini_values, col_vals)
+            if criteria == sys.maxsize:
+                value = majority_class(records)
+                return Node(None, None, None, None, value)
+            col_vals.append(column_index)
+            node = Node(criteria, None, None, column_index, None)
+            left_set, right_set = split(criteria, column_index, records)
+            if len(left_set) is 0:
+                value = majority_class(right_set)
+                return Node(None, None, None, None, value)
+            elif len(right_set) is 0:
+                value = majority_class(left_set)
+                return Node(None, None, None, None, value)
+            else:
+                node.left = create_tree(left_set, col_vals, current_depth + 1)
+                node.right = create_tree(right_set, col_vals, current_depth + 1)
+                return node
+            node.left = create_tree(left_set, col_vals, current_depth + 1)
+            node.right = create_tree(right_set, col_vals, current_depth + 1)
+            return node
+        else:
+            value = majority_class(records)
+            return Node(None, None, None, None, value)
+
+
+"""
+------------------------------------------------------------------------------------------------------------------------
+"""
+
 folds = 10
 part_len = int(len(matrix) / folds)
 metrics_avg = [0.0, 0.0, 0.0, 0.0]
@@ -409,7 +407,7 @@ for i in range(folds):
     train_data = matrix[train_data_idx]
     test_data = matrix[test_data_idx]
 
-    root = main_method(train_data, [], 0)
+    root = create_tree(train_data, [], 0)
     class_list = calculate_each_test(root, test_data_idx)
     print("Fold: ", i + 1)
     accuracy, precision, recall, f1_measure = calculate_accuracy(class_list, test_data)

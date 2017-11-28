@@ -256,51 +256,6 @@ def split(criteria, column_index, input_matrix):
 """
 
 
-def main_method(records, old_list):
-    col_vals = old_list.copy()
-    flag, value = same_class(records)
-    if flag:
-        return Node(None, None, None, None, value)
-    elif len(records) <= 3:                         # Check if node becomes too small (<= 3 examples)
-        value = majority_class(records)
-        return Node(None, None, None, None, value)
-    else:
-        if len(col_vals) < len(records[0]) - 1:     # Check if the height of tree exceeds no. of features.
-            split_values = [sys.maxsize for i in range(len(records[0])-1)]
-            gini_values = [sys.maxsize for i in range(len(records[0])-1)]
-            criteria, column_index = compute_best_split(records, split_values, gini_values, col_vals)
-            if criteria == sys.maxsize:
-                value = majority_class(records)
-                return Node(None, None, None, None, value)
-            if mainArr[column_index] == "Categorical":
-                col_vals.append(column_index)
-            elif mainArr[column_index] == "Numerical":
-                col_vals.append(sys.maxsize)
-            node = Node(criteria, None, None, column_index, None)
-            left_set, right_set = split(criteria, column_index, records)
-            if len(left_set) is 0:
-                value = majority_class(right_set)
-                return Node(None, None, None, None, value)
-            elif len(right_set) is 0:
-                value = majority_class(left_set)
-                return Node(None, None, None, None, value)
-            else:
-                node.left = main_method(left_set, col_vals)
-                node.right = main_method(right_set, col_vals)
-                return node
-            node.left = main_method(left_set, col_vals)
-            node.right = main_method(right_set, col_vals)
-            return node
-        else:
-            value = majority_class(records)
-            return Node(None, None, None, None, value)
-
-
-"""
-------------------------------------------------------------------------------------------------------------------------
-"""
-
-
 def height(root):
     if root is None:
         return -1
@@ -382,6 +337,51 @@ def calculate_each_test(root, test_data_idx):
 ------------------------------------------------------------------------------------------------------------------------
 """
 
+
+def create_tree(records, old_list):
+    col_vals = old_list.copy()
+    flag, value = same_class(records)
+    if flag:
+        return Node(None, None, None, None, value)
+    elif len(records) <= 3:                         # Check if node becomes too small (<= 3 examples)
+        value = majority_class(records)
+        return Node(None, None, None, None, value)
+    else:
+        if len(col_vals) < len(records[0]) - 1:     # Check if the height of tree exceeds no. of features.
+            split_values = [sys.maxsize for i in range(len(records[0])-1)]
+            gini_values = [sys.maxsize for i in range(len(records[0])-1)]
+            criteria, column_index = compute_best_split(records, split_values, gini_values, col_vals)
+            if criteria == sys.maxsize:
+                value = majority_class(records)
+                return Node(None, None, None, None, value)
+            if mainArr[column_index] == "Categorical":
+                col_vals.append(column_index)
+            elif mainArr[column_index] == "Numerical":
+                col_vals.append(sys.maxsize)
+            node = Node(criteria, None, None, column_index, None)
+            left_set, right_set = split(criteria, column_index, records)
+            if len(left_set) is 0:
+                value = majority_class(right_set)
+                return Node(None, None, None, None, value)
+            elif len(right_set) is 0:
+                value = majority_class(left_set)
+                return Node(None, None, None, None, value)
+            else:
+                node.left = create_tree(left_set, col_vals)
+                node.right = create_tree(right_set, col_vals)
+                return node
+            node.left = create_tree(left_set, col_vals)
+            node.right = create_tree(right_set, col_vals)
+            return node
+        else:
+            value = majority_class(records)
+            return Node(None, None, None, None, value)
+
+
+"""
+------------------------------------------------------------------------------------------------------------------------
+"""
+
 number_of_trees = 5     # Number of trees in a forest
 m = 3
 folds = 10              # Number of forests.
@@ -421,7 +421,7 @@ for i in range(folds):
                                                 train_data_idx[len(train_data_idx)-1])
                                  for k in range(len(train_data_idx))]
         sample_train_data = matrix[sample_train_data_idx]
-        root_list.append(main_method(sample_train_data, []))
+        root_list.append(create_tree(sample_train_data, []))
         print("Root height ", height(root_list[j]))
 
     """
