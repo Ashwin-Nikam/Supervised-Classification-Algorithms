@@ -370,9 +370,6 @@ def create_tree(records, old_list):
                 node.left = create_tree(left_set, col_vals)
                 node.right = create_tree(right_set, col_vals)
                 return node
-            node.left = create_tree(left_set, col_vals)
-            node.right = create_tree(right_set, col_vals)
-            return node
         else:
             value = majority_class(records)
             return Node(None, None, None, None, value)

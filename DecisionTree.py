@@ -42,7 +42,7 @@ def is_number(n):
 """
 
 
-file = open("project3_dataset2.txt")
+file = open("project3_dataset1.txt")
 lines = file.readlines()
 rows = len(lines)
 columns = len(lines[0].split("\t"))
@@ -371,9 +371,6 @@ def create_tree(records, old_list, current_depth):
                 node.left = create_tree(left_set, col_vals, current_depth + 1)
                 node.right = create_tree(right_set, col_vals, current_depth + 1)
                 return node
-            node.left = create_tree(left_set, col_vals, current_depth + 1)
-            node.right = create_tree(right_set, col_vals, current_depth + 1)
-            return node
         else:
             value = majority_class(records)
             return Node(None, None, None, None, value)
