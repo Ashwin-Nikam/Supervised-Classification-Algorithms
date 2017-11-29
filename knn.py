@@ -14,7 +14,7 @@ def get_metrics(ground_truth, our_algo, indices):
     fn = 0
     last_column = len(ground_truth[0]) - 1
     for i in indices:
-        if ground_truth[i][last_column] == our_algo[i][last_column] == 1:
+        if ground_truth[i][last_column] == 1 and our_algo[i][last_column] == 1:
             tp += 1
         elif ground_truth[i][last_column] == 0 and our_algo[i][last_column] == 1:
             fp += 1
@@ -126,7 +126,7 @@ def get_nearest_neighbors(labeled_data, distances, origin, k):
     neigh.append(origin)  # append origin to avoid calculating self distances
     while k > 0:
         minimum = sys.float_info.max
-        min_index = -1
+        min_index = - 1
         for d in range(len(distances[origin])):
             if d not in neigh and d in labeled_data:  # origin<->d: d must not be taken already AND d should be a labeled point.
                 if distances[origin][d] < minimum:
@@ -151,7 +151,7 @@ def k_nn(train_data_idx, test_data_idx, input_data, normalized_input):
     last_column = len(normalized_input[0]) - 1  # ignore last column because it is the class label
     # Start K-nn
 
-    k = 4
+    k = 5
     # Initially labeled data is basically indices of train data. Gradually other points(from test data) get labeled
     # precalculate distances
     distances = calc_dist_matrix(normalized_input)

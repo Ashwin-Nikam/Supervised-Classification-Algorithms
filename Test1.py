@@ -1,8 +1,7 @@
 import numpy as np
 import itertools
 import sys
-from queue import *
-from colorama import init, Fore, Back, Style
+from colorama import Fore, Style
 
 
 """
@@ -43,7 +42,7 @@ def is_number(n):
 """
 
 
-file = open("project3_dataset2.txt")
+file = open("newData.txt")
 lines = file.readlines()
 rows = len(lines)
 columns = len(lines[0].split("\t"))
@@ -256,63 +255,6 @@ def split(criteria, column_index, input_matrix):
 """
 
 
-def main_method(records, old_list, current_depth):
-    if len(records) == 0:
-        return None
-    col_vals = old_list.copy()
-    flag, value = same_class(records)
-    if flag:
-        return Node(None, None, None, None, value)
-    elif current_depth + 1 >= max_depth or len(records) <= min_records:   # Conditions added for pruning
-        value = majority_class(records)
-        return Node(None, None, None, None, value)
-    else:
-        if len(col_vals) < len(records[0])-1:
-            split_values = [sys.maxsize for i in range(len(records[0])-1)]
-            gini_values = [sys.maxsize for i in range(len(records[0])-1)]
-            criteria, column_index = compute_best_split(records, split_values, gini_values, col_vals)
-            if criteria == sys.maxsize:
-                value = majority_class(records)
-                return Node(None, None, None, None, value)
-            col_vals.append(column_index)
-            node = Node(criteria, None, None, column_index, None)
-            left_set, right_set = split(criteria, column_index, records)
-            node.left = main_method(left_set, col_vals, current_depth + 1)
-            node.right = main_method(right_set, col_vals, current_depth + 1)
-            return node
-        else:
-            value = majority_class(records)
-            return Node(None, None, None, None, value)
-
-
-"""
-------------------------------------------------------------------------------------------------------------------------
-"""
-
-
-def print_tree(root):
-    q = Queue(maxsize=0)
-    q.put(root)
-    while not q.empty():
-        count = q.qsize()
-        for i in range(count):
-            node = q.get()
-            if node.split_criteria != None:
-                print(node.split_criteria)
-            else:
-                print(node.final_value,"!")
-            if node.left is not None:
-                q.put(node.left)
-            if node.right is not None:
-                q.put(node.right)
-        print("=======")
-
-
-"""
-------------------------------------------------------------------------------------------------------------------------
-"""
-
-
 def traverse_tree(root, query):
     if root.final_value is not None:
         return root.final_value
@@ -384,11 +326,12 @@ Prints the tree horizontally (rotated anticlockwise)
 # format: [color1, color2, Class color]
 colors = [Fore.GREEN, Fore.BLUE, Fore.RED + Style.BRIGHT]
 
-def hprint(node, depth = 0):
+
+def h_print(node, depth = 0):
     ret = ""
     # process right branch
     if node.right is not None:
-        ret += hprint(node.right, depth + 1)
+        ret += h_print(node.right, depth + 1)
 
     # print self contents
     self_str = ""
@@ -409,61 +352,100 @@ def hprint(node, depth = 0):
 
     # process left branch
     if node.left is not None:
-        ret += hprint(node.left, depth + 1)
+        ret += h_print(node.left, depth + 1)
     return ret
-
 
 
 """
 ------------------------------------------------------------------------------------------------------------------------
 """
 
-max_depth = 5
-min_records = 10
-folds = 10
-part_len = int(len(matrix) / folds)
-metrics_avg = [0.0, 0.0, 0.0, 0.0]
-train_data_idx = set()
-accuracy_list = []
-precision_list = []
-recall_list = []
-f1_measure_list = []
 
-for i in range(folds):
-    if i != folds - 1:
-        start = (i * part_len)
-        end = start + part_len
-        test_data_idx = set(range(start, end))
+def create_tree(records, old_list, current_depth):
+    if len(records) == 0:
+        return None
+    col_vals = old_list.copy()
+    flag, value = same_class(records)
+    if flag:
+        return Node(None, None, None, None, value)
     else:
-        test_data_idx = set(range(i * part_len, len(matrix)))
-    train_data_idx = set(range(len(matrix))).difference(test_data_idx)
-    test_data_idx = list(test_data_idx)
-    train_data_idx = list(train_data_idx)
-    train_data = matrix[train_data_idx]
-    test_data = matrix[test_data_idx]
+        if len(col_vals) < len(records[0])-1:
+            split_values = [sys.maxsize for i in range(len(records[0])-1)]
+            gini_values = [sys.maxsize for i in range(len(records[0])-1)]
+            criteria, column_index = compute_best_split(records, split_values, gini_values, col_vals)
+            if criteria == sys.maxsize:
+                value = majority_class(records)
+                return Node(None, None, None, None, value)
+            col_vals.append(column_index)
+            node = Node(criteria, None, None, column_index, None)
+            left_set, right_set = split(criteria, column_index, records)
+            node.left = create_tree(left_set, col_vals, current_depth + 1)
+            node.right = create_tree(right_set, col_vals, current_depth + 1)
+            return node
+        else:
+            value = majority_class(records)
+            return Node(None, None, None, None, value)
 
-    root = main_method(train_data, [], 0)
-    class_list = calculate_each_test(root, test_data_idx)
-    print("Fold: ", i + 1)
-    accuracy, precision, recall, f1_measure = calculate_accuracy(class_list, test_data)
-    accuracy_list.append(accuracy)
-    precision_list.append(precision)
-    recall_list.append(recall)
-    f1_measure_list.append(f1_measure)
-    print(accuracy)
-    print(Fore.RESET)
-    print(Style.NORMAL)
-    print('---Tree---\n', hprint(root))
-    print(Fore.RESET)
-    print(Style.NORMAL)
-    print("\n---\n")
 
-accuracy = np.sum(accuracy_list)/len(accuracy_list)
-precision = np.sum(precision_list)/len(precision_list)
-recall = np.sum(recall_list)/len(recall_list)
-f1_measure = np.sum(f1_measure_list)/len(f1_measure_list)
-print("Accuracy: ",accuracy, "Precision: ", precision, "Recall: ", recall,
-"F1-measure: ", f1_measure)
+"""
+------------------------------------------------------------------------------------------------------------------------
+"""
+
+root = create_tree(matrix, [], 0)
+print(Fore.RESET)
+print(Style.NORMAL)
+print('---Tree---\n', h_print(root))
+print(Fore.RESET)
+print(Style.NORMAL)
+print("\n---\n")
+
+
+# max_depth = 5
+# min_records = 10
+# folds = 10
+# part_len = int(len(matrix) / folds)
+# metrics_avg = [0.0, 0.0, 0.0, 0.0]
+# train_data_idx = set()
+# accuracy_list = []
+# precision_list = []
+# recall_list = []
+# f1_measure_list = []
+#
+# for i in range(folds):
+#     if i != folds - 1:
+#         start = (i * part_len)
+#         end = start + part_len
+#         test_data_idx = set(range(start, end))
+#     else:
+#         test_data_idx = set(range(i * part_len, len(matrix)))
+#     train_data_idx = set(range(len(matrix))).difference(test_data_idx)
+#     test_data_idx = list(test_data_idx)
+#     train_data_idx = list(train_data_idx)
+#     train_data = matrix[train_data_idx]
+#     test_data = matrix[test_data_idx]
+#
+#     root = create_tree(train_data, [], 0)
+#     class_list = calculate_each_test(root, test_data_idx)
+#     print("Fold: ", i + 1)
+#     accuracy, precision, recall, f1_measure = calculate_accuracy(class_list, test_data)
+#     accuracy_list.append(accuracy)
+#     precision_list.append(precision)
+#     recall_list.append(recall)
+#     f1_measure_list.append(f1_measure)
+#     print(accuracy)
+#     print(Fore.RESET)
+#     print(Style.NORMAL)
+#     print('---Tree---\n', h_print(root))
+#     print(Fore.RESET)
+#     print(Style.NORMAL)
+#     print("\n---\n")
+#
+# accuracy = np.sum(accuracy_list)/len(accuracy_list)
+# precision = np.sum(precision_list)/len(precision_list)
+# recall = np.sum(recall_list)/len(recall_list)
+# f1_measure = np.sum(f1_measure_list)/len(f1_measure_list)
+# print("Accuracy: ",accuracy, "Precision: ", precision, "Recall: ", recall,
+# "F1-measure: ", f1_measure)
 
 
 

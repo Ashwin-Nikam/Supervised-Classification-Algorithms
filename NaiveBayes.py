@@ -10,7 +10,7 @@ def is_number(n):
     return True, n
 
 
-file = open("project3_dataset1.txt")
+file = open("newData.txt")
 lines = file.readlines()
 rows = len(lines)
 columns = len(lines[0].split("\t"))
