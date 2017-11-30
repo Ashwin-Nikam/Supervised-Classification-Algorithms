@@ -42,7 +42,7 @@ def is_number(n):
 """
 
 
-file = open("newData.txt")
+file = open("project3_dataset4.txt")
 lines = file.readlines()
 rows = len(lines)
 columns = len(lines[0].split("\t"))
@@ -391,6 +391,7 @@ def create_tree(records, old_list, current_depth):
 ------------------------------------------------------------------------------------------------------------------------
 """
 
+print(matrix)
 root = create_tree(matrix, [], 0)
 print(Fore.RESET)
 print(Style.NORMAL)

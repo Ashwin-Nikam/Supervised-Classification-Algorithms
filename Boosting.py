@@ -184,15 +184,21 @@ def handle_numerical_data(input_matrix, column_index, split_values, gini_values)
 
 def compute_best_split(input_matrix, split_values, gini_values, column_list):
     for i in range(len(input_matrix[0])-1):
-        if i in column_list:
-            continue
-        elif mainArr[i] == "Categorical":
+        # if i in column_list:
+        #     continue
+        if mainArr[i] == "Categorical":
             handle_categorical_data(input_matrix, i, split_values, gini_values)
         elif mainArr[i] == "Numerical":
             handle_numerical_data(input_matrix, i, split_values, gini_values)
 
     gini_values = np.array(gini_values)
-    index = np.argmin(gini_values)
+    index = 0
+    min = sys.maxsize
+    for z in range(len(gini_values)):
+        if gini_values[z] <= min:
+            min = gini_values[z]
+            index = z
+    #index = np.argmin(gini_values)
     criteria = split_values[index]
     return criteria, index
 
@@ -370,29 +376,25 @@ def create_tree(records, old_list, current_depth):
     if flag:
         return Node(None, None, None, None, value)
     else:
-        if len(col_vals) < len(records[0])-1:
-            split_values = [sys.maxsize for i in range(len(records[0])-1)]
-            gini_values = [sys.maxsize for i in range(len(records[0])-1)]
-            criteria, column_index = compute_best_split(records, split_values, gini_values, col_vals)
-            if criteria == sys.maxsize:
-                value = majority_class(records)
-                return Node(None, None, None, None, value)
-            col_vals.append(column_index)
-            node = Node(criteria, None, None, column_index, None)
-            left_set, right_set = split(criteria, column_index, records)
-            if len(left_set) == 0:
-                value = majority_class(right_set)
-                return Node(None, None, None, None, value)
-            elif len(right_set) == 0:
-                value = majority_class(left_set)
-                return Node(None, None, None, None, value)
-            else:
-                node.left = create_tree(left_set, col_vals, current_depth + 1)
-                node.right = create_tree(right_set, col_vals, current_depth + 1)
-                return node
-        else:
+        split_values = [sys.maxsize for i in range(len(records[0])-1)]
+        gini_values = [sys.maxsize for i in range(len(records[0])-1)]
+        criteria, column_index = compute_best_split(records, split_values, gini_values, col_vals)
+        if criteria == sys.maxsize:
             value = majority_class(records)
             return Node(None, None, None, None, value)
+        col_vals.append(column_index)
+        node = Node(criteria, None, None, column_index, None)
+        left_set, right_set = split(criteria, column_index, records)
+        if len(left_set) == 0:
+            value = majority_class(right_set)
+            return Node(None, None, None, None, value)
+        elif len(right_set) == 0:
+            value = majority_class(left_set)
+            return Node(None, None, None, None, value)
+        else:
+            node.left = create_tree(left_set, col_vals, current_depth + 1)
+            node.right = create_tree(right_set, col_vals, current_depth + 1)
+            return node
 
 
 """
