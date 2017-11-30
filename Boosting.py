@@ -255,29 +255,6 @@ def split(criteria, column_index, input_matrix):
 """
 
 
-def print_tree(root):
-    q = Queue(maxsize=0)
-    q.put(root)
-    while not q.empty():
-        count = q.qsize()
-        for i in range(count):
-            node = q.get()
-            if node.split_criteria != None:
-                print(node.split_criteria)
-            else:
-                print(node.final_value,"!")
-            if node.left is not None:
-                q.put(node.left)
-            if node.right is not None:
-                q.put(node.right)
-        print("=======")
-
-
-"""
-------------------------------------------------------------------------------------------------------------------------
-"""
-
-
 def traverse_tree(root, query):
     if root.final_value is not None:
         return root.final_value

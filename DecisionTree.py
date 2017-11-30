@@ -255,29 +255,6 @@ def split(criteria, column_index, input_matrix):
 """
 
 
-def print_tree(root):
-    q = Queue(maxsize=0)
-    q.put(root)
-    while not q.empty():
-        count = q.qsize()
-        for i in range(count):
-            node = q.get()
-            if node.split_criteria != None:
-                print(node.split_criteria)
-            else:
-                print(node.final_value,"!")
-            if node.left is not None:
-                q.put(node.left)
-            if node.right is not None:
-                q.put(node.right)
-        print("=======")
-
-
-"""
-------------------------------------------------------------------------------------------------------------------------
-"""
-
-
 def traverse_tree(root, query):
     if root.final_value is not None:
         return root.final_value
@@ -319,9 +296,12 @@ def calculate_accuracy(class_list, test_data):
             false_positive += 1
     accuracy = (true_positive + true_negative) / (true_positive + true_negative
                                                   + false_positive + false_negative)
-    precision = (true_positive) / (true_positive + false_positive)
-    recall = (true_positive) / (true_positive + false_negative)
-    f1_measure = (2 * true_positive) / ((2 * true_positive) + false_positive + false_negative)
+    #precision = (true_positive) / (true_positive + false_positive)
+    #recall = (true_positive) / (true_positive + false_negative)
+    #f1_measure = (2 * true_positive) / ((2 * true_positive) + false_positive + false_negative)
+    precision = 0
+    recall = 0
+    f1_measure = 0
     return accuracy, precision, recall, f1_measure
 
 
