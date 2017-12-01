@@ -1,7 +1,6 @@
 import numpy as np
 import itertools
 import sys
-import math
 
 """
 ------------------------------------------------------------------------------------------------------------------------
@@ -444,9 +443,9 @@ for i in range(folds):
                 weight_column[k] *= np.exp(-1 * alpha * - 1)
             else:
                 weight_column[k] *= np.exp(-1 * alpha * + 1)
-        den = np.sum(weight_column)
+        new_sum = np.sum(weight_column)
         for k in range(len(weight_column)):
-            weight_column /= den
+            weight_column[k] *= old_sum/new_sum
     class_list = classify_test_data(test_data, forest, alpha_list)
     accuracy, precision, recall, f1_measure = calculate_accuracy(class_list, test_data)
     accuracy_list.append(accuracy)
