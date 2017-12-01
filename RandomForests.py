@@ -42,7 +42,7 @@ def is_number(n):
 """
 
 
-file = open("newData.txt")
+file = open("project3_dataset2.txt")
 lines = file.readlines()
 rows = len(lines)
 columns = len(lines[0].split("\t"))
@@ -187,10 +187,11 @@ def compute_best_split(input_matrix, split_values, gini_values, column_list):
     for feature_index in random_features:
         if mainArr[feature_index] == "Numerical":
             handle_numerical_data(input_matrix, feature_index, split_values, gini_values)
-        elif feature_index in column_list:
-            continue
         elif mainArr[feature_index] == "Categorical":
-            handle_categorical_data(input_matrix, feature_index, split_values, gini_values)
+            if feature_index in column_list:
+                continue
+            else:
+                handle_categorical_data(input_matrix, feature_index, split_values, gini_values)
 
     gini_values = np.array(gini_values)
     index = np.argmin(gini_values)

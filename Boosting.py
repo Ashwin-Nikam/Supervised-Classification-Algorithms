@@ -189,12 +189,6 @@ def compute_best_split(input_matrix, split_values, gini_values):
             handle_numerical_data(input_matrix, i, split_values, gini_values)
 
     gini_values = np.array(gini_values)
-    # index = 0
-    # min = sys.maxsize
-    # for z in range(len(gini_values)):
-    #     if gini_values[z] <= min:
-    #         min = gini_values[z]
-    #         index = z
     index = np.argmin(gini_values)
     criteria = split_values[index]
     return criteria, index
