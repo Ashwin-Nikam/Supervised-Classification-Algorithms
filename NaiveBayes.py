@@ -91,14 +91,13 @@ def mean_var_in_dict(input_matrix):
                 mean_std_dict[j].append(["Categorical"])
 
 
-def calculate_posterior_probability(test_data, train_data):
+def calculate_posterior_probability(test_data):
     main_list = []
     for row in test_data:
         query = list(row)
         query.pop()
-        numClasses = np.unique(matrix[:, len(matrix[0])-1]).size
         finalList = []
-        for i in range(numClasses):
+        for i in range(2):
             probability = 1.0
             for j in range(len(query)):
                 if mainArr[j] == "Numerical":
@@ -134,13 +133,16 @@ def calculate_accuracy(class_list, test_data):
             false_positive += 1
     accuracy = (true_positive + true_negative) / (true_positive + true_negative
                                                   + false_positive + false_negative)
-    # precision = (true_positive) / (true_positive + false_positive)
-    # recall = (true_positive) / (true_positive + false_negative)
-    # f1_measure = (2*true_positive)/((2*true_positive) + false_positive + false_negative)
-    precision = 0
-    recall = 0
-    f1_measure = 0
-    return accuracy, precision, recall, f1_measure
+    if true_negative == 0 or false_negative == 0 or false_positive == 0:
+        precision = 0
+        recall = 0
+        f1_measure = 0
+        return accuracy, precision, recall, f1_measure
+    else:
+        precision = (true_positive) / (true_positive + false_positive)
+        recall = (true_positive) / (true_positive + false_negative)
+        f1_measure = (2 * true_positive) / ((2 * true_positive) + false_positive + false_negative)
+        return accuracy, precision, recall, f1_measure
 
 
 folds = 10
@@ -167,7 +169,7 @@ for i in range(folds):
     train_data = matrix[train_data_idx]
     test_data= matrix[test_data_idx]
     mean_var_in_dict(train_data)  #Updating dictionary with mean and variance for new train data
-    class_list = calculate_posterior_probability(test_data, train_data) #Calculating probability for every row in test data
+    class_list = calculate_posterior_probability(test_data) #Calculating probability for every row in test data
 
     accuracy, precision, recall, f1_measure = calculate_accuracy(class_list, test_data_idx)
     print("Fold: ",i+1)

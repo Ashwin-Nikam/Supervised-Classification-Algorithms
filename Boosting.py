@@ -1,7 +1,6 @@
 import numpy as np
 import itertools
 import sys
-from queue import *
 import math
 
 """
@@ -184,21 +183,19 @@ def handle_numerical_data(input_matrix, column_index, split_values, gini_values)
 
 def compute_best_split(input_matrix, split_values, gini_values, column_list):
     for i in range(len(input_matrix[0])-1):
-        # if i in column_list:
-        #     continue
         if mainArr[i] == "Categorical":
             handle_categorical_data(input_matrix, i, split_values, gini_values)
         elif mainArr[i] == "Numerical":
             handle_numerical_data(input_matrix, i, split_values, gini_values)
 
     gini_values = np.array(gini_values)
-    index = 0
-    min = sys.maxsize
-    for z in range(len(gini_values)):
-        if gini_values[z] <= min:
-            min = gini_values[z]
-            index = z
-    #index = np.argmin(gini_values)
+    # index = 0
+    # min = sys.maxsize
+    # for z in range(len(gini_values)):
+    #     if gini_values[z] <= min:
+    #         min = gini_values[z]
+    #         index = z
+    index = np.argmin(gini_values)
     criteria = split_values[index]
     return criteria, index
 
@@ -379,9 +376,6 @@ def create_tree(records, old_list, current_depth):
         split_values = [sys.maxsize for i in range(len(records[0])-1)]
         gini_values = [sys.maxsize for i in range(len(records[0])-1)]
         criteria, column_index = compute_best_split(records, split_values, gini_values, col_vals)
-        if criteria == sys.maxsize:
-            value = majority_class(records)
-            return Node(None, None, None, None, value)
         col_vals.append(column_index)
         node = Node(criteria, None, None, column_index, None)
         left_set, right_set = split(criteria, column_index, records)
@@ -401,11 +395,6 @@ def create_tree(records, old_list, current_depth):
 ------------------------------------------------------------------------------------------------------------------------
 """
 
-
-train_data_idx = list(range(100, 00))
-test_data_idx = list(range(400, len(matrix)))
-train_data = matrix[train_data_idx]
-test_data = matrix[test_data_idx]
 
 num_bags = 5
 
@@ -433,6 +422,7 @@ for i in range(folds):
     weight_column = [1 / len(train_data_idx) for x in range(len(train_data_idx))]
     forest = []
     error_list = []
+    alpha_list = []
     for i in range(num_bags):
         error = sys.maxsize
         classified_indices = []
@@ -444,6 +434,8 @@ for i in range(folds):
             print("Tree created!")
             class_list = calculate_each_test(root, train_data_idx)
             error, classified_indices = calculate_model_error(class_list, train_data, weight_column)
+        alpha = (1/2)*np.log((1-error)/error)
+        alpha_list.append(alpha)
         error_list.append(error)
         forest.append(root)
         old_sum = np.sum(weight_column)

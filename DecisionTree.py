@@ -41,7 +41,7 @@ def is_number(n):
 """
 
 
-file = open("project3_dataset4.txt")
+file = open("project3_dataset1.txt")
 lines = file.readlines()
 rows = len(lines)
 columns = len(lines[0].split("\t"))
@@ -181,10 +181,8 @@ def handle_numerical_data(input_matrix, column_index, split_values, gini_values)
 """
 
 
-def compute_best_split(input_matrix, split_values, gini_values, column_list):
+def compute_best_split(input_matrix, split_values, gini_values):
     for i in range(len(input_matrix[0])-1):
-        # if i in column_list:
-        #     continue
         if mainArr[i] == "Categorical":
             handle_categorical_data(input_matrix, i, split_values, gini_values)
         elif mainArr[i] == "Numerical":
@@ -299,15 +297,19 @@ def calculate_accuracy(class_list, test_data):
             false_negative += 1
         elif class_list[i] == 1 and class_label[i] == 0:
             false_positive += 1
+
     accuracy = (true_positive + true_negative) / (true_positive + true_negative
                                                   + false_positive + false_negative)
-    # precision = (true_positive) / (true_positive + false_positive)
-    # recall = (true_positive) / (true_positive + false_negative)
-    # f1_measure = (2 * true_positive) / ((2 * true_positive) + false_positive + false_negative)
-    precision = 0
-    recall = 0
-    f1_measure = 0
-    return accuracy, precision, recall, f1_measure
+    if true_negative == 0 or false_negative == 0 or false_positive == 0:
+        precision = 0
+        recall = 0
+        f1_measure = 0
+        return accuracy, precision, recall, f1_measure
+    else:
+        precision = (true_positive) / (true_positive + false_positive)
+        recall = (true_positive) / (true_positive + false_negative)
+        f1_measure = (2 * true_positive) / ((2 * true_positive) + false_positive + false_negative)
+        return accuracy, precision, recall, f1_measure
 
 
 """
@@ -330,16 +332,14 @@ def calculate_each_test(root, test_data_idx):
 """
 
 
-def create_tree(records, old_list, current_depth):
-    col_vals = old_list.copy()
+def create_tree(records):
     flag, value = same_class(records)
     if flag:
         return Node(None, None, None, None, value)
     else:
         split_values = [sys.maxsize for i in range(len(records[0])-1)]
         gini_values = [sys.maxsize for i in range(len(records[0])-1)]
-        criteria, column_index = compute_best_split(records, split_values, gini_values, col_vals)
-        col_vals.append(column_index)
+        criteria, column_index = compute_best_split(records, split_values, gini_values)
         node = Node(criteria, None, None, column_index, None)
         left_set, right_set = split(criteria, column_index, records)
         if len(left_set) == 0:
@@ -349,15 +349,15 @@ def create_tree(records, old_list, current_depth):
             value = majority_class(left_set)
             return Node(None, None, None, None, value)
         else:
-            node.left = create_tree(left_set, col_vals, current_depth + 1)
-            node.right = create_tree(right_set, col_vals, current_depth + 1)
+            node.left = create_tree(left_set)
+            node.right = create_tree(right_set)
             return node
+
 
 """
 ------------------------------------------------------------------------------------------------------------------------
 """
 
-print(matrix)
 folds = 10
 part_len = int(len(matrix) / folds)
 metrics_avg = [0.0, 0.0, 0.0, 0.0]
@@ -379,7 +379,7 @@ for i in range(folds):
     train_data = matrix[train_data_idx]
     test_data = matrix[test_data_idx]
 
-    root = create_tree(train_data, [], 0)
+    root = create_tree(train_data)
     class_list = calculate_each_test(root, test_data_idx)
     print("Fold: ", i + 1)
     accuracy, precision, recall, f1_measure = calculate_accuracy(class_list, test_data)
