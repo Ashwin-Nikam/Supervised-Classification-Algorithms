@@ -1,7 +1,6 @@
 import numpy as np
 import itertools
 import sys
-from colorama import init, Fore, Back, Style
 
 """
 ------------------------------------------------------------------------------------------------------------------------
@@ -333,17 +332,6 @@ def calculate_each_test(root, test_data_idx):
 
 
 def print_tree(root):
-    print(hprint(root))
-    print(Fore.RESET)
-    print(Style.NORMAL)
-
-
-"""
-------------------------------------------------------------------------------------------------------------------------
-"""
-
-
-def traverse(root):
     current_level = [root]
     while current_level:
         for node in current_level:
@@ -366,45 +354,6 @@ def traverse(root):
                 next_level.append(n.right)
             current_level = next_level
         print()
-
-
-"""
-Prints the tree horizontally (rotated anticlockwise) 
-------------------------------------------------------------------------------------------------------------------------
-"""
-
-
-# format: [color1, color2, Class color]
-colors = [Fore.GREEN, Fore.BLUE, Fore.RED + Style.BRIGHT]
-
-
-def hprint(node, depth = 0):
-    ret = ""
-    # process right branch
-    if node.right is not None:
-        ret += hprint(node.right, depth + 1)
-    self_str = ""
-    # print self contents
-    if node.split_criteria is None:
-
-        self_str =  colors[2]  + str(int(node.final_value))
-    elif isinstance(node.split_criteria, list):
-        split_criteria_strings = []
-        for n in node.split_criteria:
-            #search dictionary for string value of this column
-            for k,v in main_dictionary[node.column_index].items():
-                if v == n:
-                    split_criteria_strings.append(k)
-        self_str = colors[depth % 2] + str(node.column_index) + " in " + str(split_criteria_strings) + "?"
-    else:
-        self_str = colors[depth%2] + str(node.column_index) + "<" + str(node.split_criteria) + "?"
-
-    ret += "\n" + ("  " * depth) + self_str
-
-    # process left branch
-    if node.left is not None:
-        ret += hprint(node.left, depth + 1)
-    return ret
 
 
 """
@@ -439,7 +388,7 @@ def create_tree(records):
 """
 
 root = create_tree(matrix)
-traverse(root)
+print_tree(root)
 
 """
 ------------------------------------------------------------------------------------------------------------------------
