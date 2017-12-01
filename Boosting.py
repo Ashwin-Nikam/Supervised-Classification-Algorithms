@@ -41,7 +41,7 @@ def is_number(n):
 """
 
 
-file = open("project3_dataset1.txt")
+file = open("project3_dataset2.txt")
 lines = file.readlines()
 rows = len(lines)
 columns = len(lines[0].split("\t"))
@@ -342,13 +342,13 @@ def calculate_model_error(class_list, train_data, weight_column):
 """
 
 
-def classify_test_data(test_data, forest, error_list):
+def classify_test_data(test_data, forest, alpha_list):
     class_list = []
     for k in range(len(test_data)):
         weight0 = 0
         weight1 = 0
         for i in range(len(forest)):
-            classifier_weight = math.log((1-error_list[i]) / (error_list[i]))
+            classifier_weight = alpha_list[i]
             tuple = test_data[k]
             class_prediction = traverse_tree(forest[i], tuple)
             if class_prediction == 0:
@@ -421,7 +421,6 @@ for i in range(folds):
     test_data = matrix[test_data_idx]
     weight_column = [1 / len(train_data_idx) for x in range(len(train_data_idx))]
     forest = []
-    error_list = []
     alpha_list = []
     for i in range(num_bags):
         error = sys.maxsize
@@ -436,15 +435,19 @@ for i in range(folds):
             error, classified_indices = calculate_model_error(class_list, train_data, weight_column)
         alpha = (1/2)*np.log((1-error)/error)
         alpha_list.append(alpha)
-        error_list.append(error)
         forest.append(root)
         old_sum = np.sum(weight_column)
-        for index in classified_indices:
-            weight_column[index] *= (error/(1-error))
-        new_sum = np.sum(weight_column)
+        for k in range(len(class_list)):
+            true_label = train_data[k][len(train_data[0])-1]
+            predicted_label = class_list[k]
+            if true_label != predicted_label:
+                weight_column[k] *= np.exp(-1 * alpha * - 1)
+            else:
+                weight_column[k] *= np.exp(-1 * alpha * + 1)
+        den = np.sum(weight_column)
         for k in range(len(weight_column)):
-            weight_column[k] *= (old_sum/new_sum)
-    class_list = classify_test_data(test_data, forest, error_list)
+            weight_column /= den
+    class_list = classify_test_data(test_data, forest, alpha_list)
     accuracy, precision, recall, f1_measure = calculate_accuracy(class_list, test_data)
     accuracy_list.append(accuracy)
     precision_list.append(precision)
