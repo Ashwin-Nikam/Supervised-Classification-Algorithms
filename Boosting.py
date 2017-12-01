@@ -41,7 +41,7 @@ def is_number(n):
 """
 
 
-file = open("project3_dataset2.txt")
+file = open("project3_dataset1.txt")
 lines = file.readlines()
 rows = len(lines)
 columns = len(lines[0].split("\t"))
@@ -419,6 +419,7 @@ for i in range(folds):
     weight_column = [1 / len(train_data_idx) for x in range(len(train_data_idx))]
     forest = []
     alpha_list = []
+
     for i in range(num_bags):
         error = sys.maxsize
         classified_indices = []
@@ -443,6 +444,7 @@ for i in range(folds):
         new_sum = np.sum(weight_column)
         for k in range(len(weight_column)):
             weight_column[k] /= new_sum
+
     class_list = classify_test_data(test_data, forest, alpha_list)
     accuracy, precision, recall, f1_measure = calculate_accuracy(class_list, test_data)
     accuracy_list.append(accuracy)
