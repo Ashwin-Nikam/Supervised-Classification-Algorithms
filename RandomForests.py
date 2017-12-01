@@ -2,6 +2,7 @@ import numpy as np
 import itertools
 import sys
 import random
+import math
 
 """
 ------------------------------------------------------------------------------------------------------------------------
@@ -41,7 +42,7 @@ def is_number(n):
 """
 
 
-file = open("project3_dataset2.txt")
+file = open("project3_dataset1.txt")
 lines = file.readlines()
 rows = len(lines)
 columns = len(lines[0].split("\t"))
@@ -193,8 +194,6 @@ def compute_best_split(input_matrix, split_values, gini_values, column_list):
                 handle_categorical_data(input_matrix, feature_index, split_values, gini_values)
 
     gini_values = np.array(gini_values)
-    index = 0
-    min = sys.maxsize
     index = np.argmin(gini_values)
     criteria = split_values[index]
     return criteria, index
@@ -380,8 +379,8 @@ def create_tree(records, old_list):
 """
 
 number_of_trees = 5     # Number of trees in a forest
-m = (20/100)*(len(matrix[0])-1)
-m = round(m)
+m = round(math.sqrt(len(matrix[0])-1))
+print("m = ",m)
 folds = 10              # Number of forests.
 
 part_len = int(len(matrix) / folds)
@@ -415,9 +414,8 @@ for i in range(folds):
     """
 
     for j in range(number_of_trees):
-        sample_train_data_idx = [random.randint(train_data_idx[0],
-                                                train_data_idx[len(train_data_idx)-1])
-                                 for k in range(len(train_data_idx))]
+        sample_train_data_idx = np.random.choice(train_data_idx, len(train_data_idx),
+                                                 replace=True)
         sample_train_data = matrix[sample_train_data_idx]
         root_list.append(create_tree(sample_train_data, []))
         print("Root height ", height(root_list[j]))
