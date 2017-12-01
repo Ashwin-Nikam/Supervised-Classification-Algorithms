@@ -41,7 +41,7 @@ def is_number(n):
 """
 
 
-file = open("project3_dataset1.txt")
+file = open("project3_dataset2.txt")
 lines = file.readlines()
 rows = len(lines)
 columns = len(lines[0].split("\t"))
@@ -181,7 +181,7 @@ def handle_numerical_data(input_matrix, column_index, split_values, gini_values)
 """
 
 
-def compute_best_split(input_matrix, split_values, gini_values, column_list):
+def compute_best_split(input_matrix, split_values, gini_values):
     for i in range(len(input_matrix[0])-1):
         if mainArr[i] == "Categorical":
             handle_categorical_data(input_matrix, i, split_values, gini_values)
@@ -364,16 +364,14 @@ def classify_test_data(test_data, forest, alpha_list):
 """
 
 
-def create_tree(records, old_list, current_depth):
-    col_vals = old_list.copy()
+def create_tree(records):
     flag, value = same_class(records)
     if flag:
         return Node(None, None, None, None, value)
     else:
         split_values = [sys.maxsize for i in range(len(records[0])-1)]
         gini_values = [sys.maxsize for i in range(len(records[0])-1)]
-        criteria, column_index = compute_best_split(records, split_values, gini_values, col_vals)
-        col_vals.append(column_index)
+        criteria, column_index = compute_best_split(records, split_values, gini_values)
         node = Node(criteria, None, None, column_index, None)
         left_set, right_set = split(criteria, column_index, records)
         if len(left_set) == 0:
@@ -383,8 +381,8 @@ def create_tree(records, old_list, current_depth):
             value = majority_class(left_set)
             return Node(None, None, None, None, value)
         else:
-            node.left = create_tree(left_set, col_vals, current_depth + 1)
-            node.right = create_tree(right_set, col_vals, current_depth + 1)
+            node.left = create_tree(left_set)
+            node.right = create_tree(right_set)
             return node
 
 
@@ -420,14 +418,14 @@ for i in range(folds):
     forest = []
     alpha_list = []
 
-    for i in range(num_bags):
+    for j in range(num_bags):
         error = sys.maxsize
         classified_indices = []
         root = None
         while error > 0.5:
             sample_train_idx = np.random.choice(train_data_idx, len(train_data_idx), replace=True, p=weight_column)
             sample_train_data = matrix[sample_train_idx]
-            root = create_tree(sample_train_data, [], 0)
+            root = create_tree(sample_train_data)
             print("Tree created!")
             class_list = calculate_each_test(root, train_data_idx)
             error = calculate_model_error(class_list, train_data, weight_column)
@@ -457,7 +455,7 @@ accuracy = np.sum(accuracy_list)/len(accuracy_list)
 precision = np.sum(precision_list)/len(precision_list)
 recall = np.sum(recall_list)/len(recall_list)
 f1_measure = np.sum(f1_measure_list)/len(f1_measure_list)
-print("Accuracy: ",accuracy, "Precision: ", precision, "Recall: ", recall,
+print("Accuracy: ", accuracy, "Precision: ", precision, "Recall: ", recall,
 "F1-measure: ", f1_measure)
 
 """
