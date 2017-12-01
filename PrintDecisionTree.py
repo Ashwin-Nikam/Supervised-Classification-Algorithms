@@ -1,8 +1,7 @@
 import numpy as np
 import itertools
 import sys
-from queue import *
-
+from colorama import init, Fore, Back, Style
 
 """
 ------------------------------------------------------------------------------------------------------------------------
@@ -42,7 +41,7 @@ def is_number(n):
 """
 
 
-file = open("project3_dataset2.txt")
+file = open("project3_dataset4.txt")
 lines = file.readlines()
 rows = len(lines)
 columns = len(lines[0].split("\t"))
@@ -182,17 +181,21 @@ def handle_numerical_data(input_matrix, column_index, split_values, gini_values)
 """
 
 
-def compute_best_split(input_matrix, split_values, gini_values, column_list):
+def compute_best_split(input_matrix, split_values, gini_values):
     for i in range(len(input_matrix[0])-1):
-        if i in column_list:
-            continue
-        elif mainArr[i] == "Categorical":
+        if mainArr[i] == "Categorical":
             handle_categorical_data(input_matrix, i, split_values, gini_values)
         elif mainArr[i] == "Numerical":
             handle_numerical_data(input_matrix, i, split_values, gini_values)
 
     gini_values = np.array(gini_values)
-    index = np.argmin(gini_values)
+    index = 0
+    min = sys.maxsize
+    for z in range(len(gini_values)):
+        if gini_values[z] <= min:
+            min = gini_values[z]
+            index = z
+    #index = np.argmin(gini_values)
     criteria = split_values[index]
     return criteria, index
 
@@ -255,29 +258,6 @@ def split(criteria, column_index, input_matrix):
 """
 
 
-def print_tree(root):
-    q = Queue(maxsize=0)
-    q.put(root)
-    while not q.empty():
-        count = q.qsize()
-        for i in range(count):
-            node = q.get()
-            if node.split_criteria != None:
-                print(node.split_criteria)
-            else:
-                print(node.final_value,"!")
-            if node.left is not None:
-                q.put(node.left)
-            if node.right is not None:
-                q.put(node.right)
-        print("=======")
-
-
-"""
-------------------------------------------------------------------------------------------------------------------------
-"""
-
-
 def traverse_tree(root, query):
     if root.final_value is not None:
         return root.final_value
@@ -317,12 +297,19 @@ def calculate_accuracy(class_list, test_data):
             false_negative += 1
         elif class_list[i] == 1 and class_label[i] == 0:
             false_positive += 1
+
     accuracy = (true_positive + true_negative) / (true_positive + true_negative
                                                   + false_positive + false_negative)
-    precision = (true_positive) / (true_positive + false_positive)
-    recall = (true_positive) / (true_positive + false_negative)
-    f1_measure = (2 * true_positive) / ((2 * true_positive) + false_positive + false_negative)
-    return accuracy, precision, recall, f1_measure
+    if true_negative == 0 or false_negative == 0 or false_positive == 0:
+        precision = 0
+        recall = 0
+        f1_measure = 0
+        return accuracy, precision, recall, f1_measure
+    else:
+        precision = (true_positive) / (true_positive + false_positive)
+        recall = (true_positive) / (true_positive + false_negative)
+        f1_measure = (2 * true_positive) / ((2 * true_positive) + false_positive + false_negative)
+        return accuracy, precision, recall, f1_measure
 
 
 """
@@ -345,68 +332,104 @@ def calculate_each_test(root, test_data_idx):
 """
 
 
-def create_tree(records, old_list, current_depth):
-    col_vals = old_list.copy()
-    flag, value = same_class(records)
-    if flag:
-        return Node(None, None, None, None, value)
-    else:
-        if len(col_vals) < len(records[0])-1:
-            split_values = [sys.maxsize for i in range(len(records[0])-1)]
-            gini_values = [sys.maxsize for i in range(len(records[0])-1)]
-            criteria, column_index = compute_best_split(records, split_values, gini_values, col_vals)
-            if criteria == sys.maxsize:
-                value = majority_class(records)
-                return Node(None, None, None, None, value)
-            col_vals.append(column_index)
-            node = Node(criteria, None, None, column_index, None)
-            left_set, right_set = split(criteria, column_index, records)
-            if len(left_set) is 0:
-                value = majority_class(right_set)
-                return Node(None, None, None, None, value)
-            elif len(right_set) is 0:
-                value = majority_class(left_set)
-                return Node(None, None, None, None, value)
-            else:
-                node.left = create_tree(left_set, col_vals, current_depth + 1)
-                node.right = create_tree(right_set, col_vals, current_depth + 1)
-                return node
-            node.left = create_tree(left_set, col_vals, current_depth + 1)
-            node.right = create_tree(right_set, col_vals, current_depth + 1)
-            return node
-        else:
-            value = majority_class(records)
-            return Node(None, None, None, None, value)
+def print_tree(root):
+    print(hprint(root))
+    print(Fore.RESET)
+    print(Style.NORMAL)
 
 
 """
 ------------------------------------------------------------------------------------------------------------------------
 """
 
-folds = 10
-part_len = int(len(matrix) / folds)
-metrics_avg = [0.0, 0.0, 0.0, 0.0]
-train_data_idx = set()
-accuracy_list = []
-precision_list = []
-recall_list = []
-f1_measure_list = []
-for i in range(folds):
-    if i != folds - 1:
-        start = (i * part_len)
-        end = start + part_len
-        test_data_idx = set(range(start, end))
-    else:
-        test_data_idx = set(range(i * part_len, len(matrix)))
-    train_data_idx = set(range(len(matrix))).difference(test_data_idx)
-    test_data_idx = list(test_data_idx)
-    train_data_idx = list(train_data_idx)
-    test_data_idx.sort()
-    train_data_idx.sort()
-    print(train_data_idx)
-    print(test_data_idx)
-    print("===========================")
 
+def traverse(root):
+    current_level = [root]
+    while current_level:
+        print(' '.join(str(node.column_index)
+                       if node.column_index is not None else str(node.final_value)
+                       for node in current_level))
+        next_level = list()
+        for n in current_level:
+            if n.left:
+                next_level.append(n.left)
+            if n.right:
+                next_level.append(n.right)
+            current_level = next_level
+
+
+"""
+Prints the tree horizontally (rotated anticlockwise) 
+------------------------------------------------------------------------------------------------------------------------
+"""
+
+
+# format: [color1, color2, Class color]
+colors = [Fore.GREEN, Fore.BLUE, Fore.RED + Style.BRIGHT]
+
+
+def hprint(node, depth = 0):
+    ret = ""
+    # process right branch
+    if node.right is not None:
+        ret += hprint(node.right, depth + 1)
+    self_str = ""
+    # print self contents
+    if node.split_criteria is None:
+
+        self_str =  colors[2]  + str(int(node.final_value))
+    elif isinstance(node.split_criteria, list):
+        split_criteria_strings = []
+        for n in node.split_criteria:
+            #search dictionary for string value of this column
+            for k,v in main_dictionary[node.column_index].items():
+                if v == n:
+                    split_criteria_strings.append(k)
+        self_str = colors[depth % 2] + str(node.column_index) + " in " + str(split_criteria_strings) + "?"
+    else:
+        self_str = colors[depth%2] + str(node.column_index) + "<" + str(node.split_criteria) + "?"
+
+    ret += "\n" + ("  " * depth) + self_str
+
+    # process left branch
+    if node.left is not None:
+        ret += hprint(node.left, depth + 1)
+    return ret
+
+
+"""
+------------------------------------------------------------------------------------------------------------------------
+"""
+
+
+def create_tree(records):
+    flag, value = same_class(records)
+    if flag:
+        return Node(None, None, None, None, value)
+    else:
+        split_values = [sys.maxsize for i in range(len(records[0])-1)]
+        gini_values = [sys.maxsize for i in range(len(records[0])-1)]
+        criteria, column_index = compute_best_split(records, split_values, gini_values)
+        node = Node(criteria, None, None, column_index, None)
+        left_set, right_set = split(criteria, column_index, records)
+        if len(left_set) == 0:
+            value = majority_class(right_set)
+            return Node(None, None, None, None, value)
+        elif len(right_set) == 0:
+            value = majority_class(left_set)
+            return Node(None, None, None, None, value)
+        else:
+            node.left = create_tree(left_set)
+            node.right = create_tree(right_set)
+            return node
+
+
+"""
+------------------------------------------------------------------------------------------------------------------------
+"""
+
+root = create_tree(matrix)
+traverse(root)
 
 """
 ------------------------------------------------------------------------------------------------------------------------
