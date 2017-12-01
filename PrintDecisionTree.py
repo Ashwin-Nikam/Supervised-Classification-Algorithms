@@ -346,9 +346,18 @@ def print_tree(root):
 def traverse(root):
     current_level = [root]
     while current_level:
-        print(' '.join(str(node.column_index)
-                       if node.column_index is not None else str(node.final_value)
-                       for node in current_level))
+        for node in current_level:
+            if node.split_criteria is not None:
+                d = main_dictionary[node.column_index]
+                int_list = node.split_criteria
+                category = []
+                for item in int_list:
+                    category.append(str(node.column_index) + " "+
+                                    list(d.keys())[list(d.values()).index(int(item))])
+                print(category, end="")
+            else:
+                leaf_node = str(int(node.final_value))
+                print(list(leaf_node), end="")
         next_level = list()
         for n in current_level:
             if n.left:
@@ -356,6 +365,7 @@ def traverse(root):
             if n.right:
                 next_level.append(n.right)
             current_level = next_level
+        print()
 
 
 """
