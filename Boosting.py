@@ -41,7 +41,7 @@ def is_number(n):
 """
 
 
-file = open("project3_dataset2.txt")
+file = open("project3_dataset1.txt")
 lines = file.readlines()
 rows = len(lines)
 columns = len(lines[0].split("\t"))
@@ -430,9 +430,9 @@ for i in range(folds):
             true_label = train_data[k][len(train_data[0])-1]
             predicted_label = class_list[k]
             if true_label != predicted_label:
-                weight_column[k] *= np.exp(-1 * alpha * - 1)
+                weight_column[k] *= math.exp(-1 * alpha * - 1)
             else:
-                weight_column[k] *= np.exp(-1 * alpha * + 1)
+                weight_column[k] *= math.exp(-1 * alpha * + 1)
         new_sum = np.sum(weight_column)
         for k in range(len(weight_column)):
             weight_column[k] /= new_sum

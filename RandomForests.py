@@ -3,7 +3,6 @@ import itertools
 import sys
 import random
 
-
 """
 ------------------------------------------------------------------------------------------------------------------------
 """
@@ -194,6 +193,8 @@ def compute_best_split(input_matrix, split_values, gini_values, column_list):
                 handle_categorical_data(input_matrix, feature_index, split_values, gini_values)
 
     gini_values = np.array(gini_values)
+    index = 0
+    min = sys.maxsize
     index = np.argmin(gini_values)
     criteria = split_values[index]
     return criteria, index
@@ -270,8 +271,6 @@ def height(root):
 
 
 def traverse_tree(root, query):
-    if root is None:
-        return -1
     if root.final_value is not None:
         return root.final_value
     else:
@@ -381,7 +380,8 @@ def create_tree(records, old_list):
 """
 
 number_of_trees = 5     # Number of trees in a forest
-m = 3
+m = (20/100)*(len(matrix[0])-1)
+m = round(m)
 folds = 10              # Number of forests.
 
 part_len = int(len(matrix) / folds)
