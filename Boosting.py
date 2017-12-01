@@ -1,6 +1,7 @@
 import numpy as np
 import itertools
 import sys
+import math
 
 """
 ------------------------------------------------------------------------------------------------------------------------
@@ -326,14 +327,11 @@ def calculate_each_test(root, test_data_idx):
 
 def calculate_model_error(class_list, train_data, weight_column):
     sum = 0
-    classified_indices = []
     original_class_list = train_data[:, len(train_data[0])-1]
     for i in range(len(class_list)):
         if class_list[i] != original_class_list[i]:
             sum += weight_column[i]
-        else:
-            classified_indices.append(i)
-    return sum, classified_indices
+    return sum
 
 
 """
@@ -431,11 +429,10 @@ for i in range(folds):
             root = create_tree(sample_train_data, [], 0)
             print("Tree created!")
             class_list = calculate_each_test(root, train_data_idx)
-            error, classified_indices = calculate_model_error(class_list, train_data, weight_column)
-        alpha = (1/2)*np.log((1-error)/error)
+            error = calculate_model_error(class_list, train_data, weight_column)
+        alpha = (1/2)*math.log((1-error)/error)
         alpha_list.append(alpha)
         forest.append(root)
-        old_sum = np.sum(weight_column)
         for k in range(len(class_list)):
             true_label = train_data[k][len(train_data[0])-1]
             predicted_label = class_list[k]
@@ -445,14 +442,14 @@ for i in range(folds):
                 weight_column[k] *= np.exp(-1 * alpha * + 1)
         new_sum = np.sum(weight_column)
         for k in range(len(weight_column)):
-            weight_column[k] *= old_sum/new_sum
+            weight_column[k] /= new_sum
     class_list = classify_test_data(test_data, forest, alpha_list)
     accuracy, precision, recall, f1_measure = calculate_accuracy(class_list, test_data)
     accuracy_list.append(accuracy)
     precision_list.append(precision)
     recall_list.append(recall)
     f1_measure_list.append(f1_measure)
-    print("Accuracy ",accuracy)
+    print("Accuracy ", accuracy)
 
 accuracy = np.sum(accuracy_list)/len(accuracy_list)
 precision = np.sum(precision_list)/len(precision_list)
