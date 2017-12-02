@@ -455,6 +455,7 @@ for i in range(folds):
     print("Precision :", precision)
     print("Recall :", recall)
     print("F1-Measure :", f1_measure)
+    print()
 
 """
 Calculate average accuracy of the 10 folds or 

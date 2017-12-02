@@ -446,7 +446,7 @@ for i in range(folds):
     print("Precision :", precision)
     print("Recall :", recall)
     print("F1-Measure :", f1_measure)
-
+    print()
 
 print()
 print("********** Final answer ************")
