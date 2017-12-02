@@ -194,7 +194,7 @@ def k_nn(normalized_train_input, normalized_test_input, test_input, k):
 if __name__ == '__main__':
 
     # Process train data
-    f = open('project3_dataset1.txt', newline='\n')
+    f = open('project3_dataset2.txt', newline='\n')
     original_input = []
     for line in f:
         line = line.split('\t')
@@ -212,7 +212,7 @@ if __name__ == '__main__':
         original_input.append(entry)
 
     folds = 10
-    k=5
+    k = 5
 
     part_len = int(len(original_input) / folds)
     metrics_avg = [0.0, 0.0, 0.0, 0.0]

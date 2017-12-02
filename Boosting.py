@@ -387,6 +387,9 @@ def create_tree(records):
 
 num_bags = 5
 
+print("t = ", num_bags)
+print()
+
 folds = 10
 part_len = int(len(matrix) / folds)
 metrics_avg = [0.0, 0.0, 0.0, 0.0]
