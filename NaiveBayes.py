@@ -1,6 +1,10 @@
 import numpy as np
 import scipy.stats as ss
 
+"""
+------------------------------------------------------------------------------------------------------------------------
+"""
+
 
 def is_number(n):
     try:
@@ -10,7 +14,12 @@ def is_number(n):
     return True, n
 
 
-file = open("project3_dataset4.txt")
+"""
+------------------------------------------------------------------------------------------------------------------------
+"""
+
+
+file = open("project3_dataset1.txt")
 lines = file.readlines()
 rows = len(lines)
 columns = len(lines[0].split("\t"))
@@ -23,6 +32,11 @@ matrix = np.array(matrix)
 mean_std_dict = {}
 mainArr = []
 
+"""
+------------------------------------------------------------------------------------------------------------------------
+"""
+
+
 for i in range(len(matrix[0])):
     status, number = is_number(matrix[0][i])
     if i == len(matrix[0])-1:
@@ -31,6 +45,11 @@ for i in range(len(matrix[0])):
         mainArr.append("Numerical")
     else:
         mainArr.append("Categorical")
+
+
+"""
+------------------------------------------------------------------------------------------------------------------------
+"""
 
 
 def prior_probability(classLabel):
@@ -42,10 +61,15 @@ def prior_probability(classLabel):
     return num/den
 
 
+"""
+------------------------------------------------------------------------------------------------------------------------
+"""
+
+
 def categorical_probability(category, colIndex, classLabel):
     num = 0
     for i in range(len(matrix)):
-        if matrix[i][colIndex] == category and np.equal(matrix[i][len(matrix[0]) - 1], classLabel):
+        if matrix[i][colIndex] == category and matrix[i][len(matrix[0]) - 1] == classLabel:
             num += 1
     column = matrix[:, len(matrix[0]) - 1]
     l = list(column)
@@ -53,25 +77,29 @@ def categorical_probability(category, colIndex, classLabel):
     return num/den
 
 
+"""
+------------------------------------------------------------------------------------------------------------------------
+"""
+
+
 def mean_var_in_dict(input_matrix):
-    num_classes = np.unique(matrix[:, len(matrix[0])-1]).size
     mean_std_dict[0] = []
     mean_std_dict[1] = []
     matrix_0 = []
     matrix_1 = []
     for i in range(len(input_matrix)):
-        if input_matrix[i][ len(input_matrix[0]) - 1] == '0':
+        if input_matrix[i][len(input_matrix[0]) - 1] == '0':
             matrix_0.append(input_matrix[i])
-        elif input_matrix[i][ len(input_matrix[0]) - 1] == '1':
+        elif input_matrix[i][len(input_matrix[0]) - 1] == '1':
             matrix_1.append(input_matrix[i])
     matrix_0 = np.array(matrix_0)
     matrix_1 = np.array(matrix_1)
 
     for i in range(len(mainArr)-1):
-        for j in range(num_classes):
+        for j in range(2):
             if mainArr[i] == "Numerical":
                 temp = []
-                if j is 0:
+                if j == 0:
                     main_col = matrix_0[:,i]
                     main_col = main_col.astype(np.float)
                     mean = np.mean(main_col)
@@ -91,7 +119,30 @@ def mean_var_in_dict(input_matrix):
                 mean_std_dict[j].append(["Categorical"])
 
 
-def calculate_posterior_probability(test_data):
+"""
+------------------------------------------------------------------------------------------------------------------------
+"""
+
+
+def calculate_descriptor_prior(query, input_matrix):
+    answer = 1.0
+    for j in range(len(query)):
+        column = input_matrix[:, j]
+        l = list(column)
+        num = l.count(query[j])
+        den = len(l)
+        answer *= (num/den)
+    if answer == 0:
+        print("")
+    return answer
+
+
+"""
+------------------------------------------------------------------------------------------------------------------------
+"""
+
+
+def calculate_posterior_probability(test_data, train_data):
     main_list = []
     for row in test_data:
         query = list(row)
@@ -112,6 +163,11 @@ def calculate_posterior_probability(test_data):
             finalList.append(prior * probability)
         main_list.append(finalList.index(np.amax(finalList)))
     return main_list
+
+
+"""
+------------------------------------------------------------------------------------------------------------------------
+"""
 
 
 def calculate_accuracy(class_list, test_data):
@@ -145,6 +201,10 @@ def calculate_accuracy(class_list, test_data):
         return accuracy, precision, recall, f1_measure
 
 
+"""
+------------------------------------------------------------------------------------------------------------------------
+"""
+
 folds = 10
 part_len = int(len(matrix) / folds)
 metrics_avg = [0.0,0.0,0.0,0.0]
@@ -169,10 +229,10 @@ for i in range(folds):
     train_data = matrix[train_data_idx]
     test_data= matrix[test_data_idx]
     mean_var_in_dict(train_data)  #Updating dictionary with mean and variance for new train data
-    class_list = calculate_posterior_probability(test_data) #Calculating probability for every row in test data
+    class_list = calculate_posterior_probability(test_data, train_data) #Calculating probability for every row in test data
 
     accuracy, precision, recall, f1_measure = calculate_accuracy(class_list, test_data_idx)
-    print("Fold: ",i+1)
+    print("Fold: ", i+1)
     accuracy_list.append(accuracy)
     precision_list.append(precision)
     recall_list.append(recall)
@@ -185,3 +245,8 @@ recall = np.sum(recall_list)/len(recall_list)
 f1_measure = np.sum(f1_measure_list)/len(f1_measure_list)
 print("Accuracy: ",accuracy, "Precision: ", precision, "Recall: ", recall,
 "F1-measure: ", f1_measure)
+
+
+"""
+------------------------------------------------------------------------------------------------------------------------
+"""

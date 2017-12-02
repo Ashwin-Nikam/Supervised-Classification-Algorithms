@@ -2,12 +2,22 @@ import numpy as np
 import scipy.stats as ss
 
 
+"""
+------------------------------------------------------------------------------------------------------------------------
+"""
+
+
 def is_number(n):
     try:
         n = float(n)
     except:
         return False, None
     return True, n
+
+
+"""
+------------------------------------------------------------------------------------------------------------------------
+"""
 
 
 file = open("project3_dataset4.txt")
@@ -23,6 +33,12 @@ matrix = np.array(matrix)
 mean_std_dict = {}
 mainArr = []
 
+
+"""
+------------------------------------------------------------------------------------------------------------------------
+"""
+
+
 for i in range(len(matrix[0])):
     status, number = is_number(matrix[0][i])
     if i == len(matrix[0]) - 1:
@@ -33,6 +49,11 @@ for i in range(len(matrix[0])):
         mainArr.append("Categorical")
 
 
+"""
+------------------------------------------------------------------------------------------------------------------------
+"""
+
+
 def prior_probability(classLabel):
     column = matrix[:, len(matrix[0]) - 1]
     l = list(column)
@@ -41,16 +62,26 @@ def prior_probability(classLabel):
     return num / den
 
 
+"""
+------------------------------------------------------------------------------------------------------------------------
+"""
+
+
 def categorical_probability(category, colIndex, classLabel):
     num = 0
     for i in range(len(matrix)):
-        if matrix[i][colIndex] == category and np.equal(matrix[i][len(matrix[0]) - 1], classLabel):
+        if matrix[i][colIndex] == category and matrix[i][len(matrix[0]) - 1] == classLabel:
             num += 1
     column = matrix[:, len(matrix[0]) - 1]
     l = list(column)
     den = l.count(
         classLabel)  # for a categorical value, we return the number of times that value has appeared for the given class label divided by the total count of that class label
     return num / den
+
+
+"""
+------------------------------------------------------------------------------------------------------------------------
+"""
 
 
 def mean_var_in_dict(input_matrix):
@@ -94,6 +125,11 @@ def mean_var_in_dict(input_matrix):
                     ["Categorical"])  # incase of categorical data append categorical to the dictionary
 
 
+"""
+------------------------------------------------------------------------------------------------------------------------
+"""
+
+
 def calculate_posterior_probability(test_data, train_data):
     main_list = []
     for row in test_data:  # for every row of test data
@@ -116,6 +152,11 @@ def calculate_posterior_probability(test_data, train_data):
             finalList.append(prior * probability)  # prior probability * descriptor posterior probability
         main_list.append(finalList.index(np.amax(finalList)))
     return main_list
+
+
+"""
+------------------------------------------------------------------------------------------------------------------------
+"""
 
 
 def calculate_accuracy(class_list, test_data):
@@ -156,53 +197,29 @@ def calculate_accuracy(class_list, test_data):
 
 
 """
-folds = 10
-part_len = int(len(matrix) / folds)
-metrics_avg = [0.0,0.0,0.0,0.0]
-train_data_idx = set()
-accuracy_list = []
-precision_list = []
-recall_list = []
-f1_measure_list = []
-for i in range(folds):
-    if i != folds - 1:
-        start = (i * part_len)
-        end = start + part_len
-        test_data_idx = set(range(start, end))
-    else:
-        test_data_idx = set(range(i * part_len, len(matrix)))
-    train_data_idx = set(range(len(matrix))).difference(test_data_idx)
-    test_data_idx = list(test_data_idx)
-    train_data_idx = list(train_data_idx)
-    test_data_idx.sort()
-    train_data_idx.sort()
-
-    train_data = matrix[train_data_idx]
-    test_data= matrix[test_data_idx]
-    mean_var_in_dict(train_data)  #Updating dictionary with mean and variance for new train data
-    class_list = calculate_posterior_probability(test_data, train_data) #Calculating probability for every row in test data
-
-    accuracy, precision, recall, f1_measure= calculate_accuracy(class_list, test_data_idx)
-    print("Fold: ",i+1)
-    accuracy_list.append(accuracy)
-    precision_list.append(precision)
-    recall_list.append(recall)
-    f1_measure_list.append(f1_measure)
-    print("Accuracy ", accuracy)
-
-accuracy = np.sum(accuracy_list)/len(accuracy_list)
-print("Accuracy: ",accuracy)
-precision = np.sum(precision_list)/len(precision_list)
-recall = np.sum(recall_list)/len(recall_list)
-f1_measure = np.sum(f1_measure_list)/len(f1_measure_list)
-print("Accuracy: ",accuracy, "Precision: ", precision, "Recall: ", recall,
-"F1-measure: ", f1_measure)
+------------------------------------------------------------------------------------------------------------------------
 """
+
+
+def calculate_descriptor_prior(query, input_matrix):
+    answer = 1.0
+    for j in range(len(query)):
+        column = input_matrix[:, j]
+        l = list(column)
+        num = l.count(query[j])
+        den = len(l)
+        answer *= (num/den)
+    return answer
+
+
+"""
+------------------------------------------------------------------------------------------------------------------------
+"""
+
 mean_var_in_dict(matrix)
 query = input("Enter query: ")
 query = query.split('/')
 if len(query) == len(matrix[0]) - 1:
-    print(query)
     numClasses = np.unique(matrix[:, len(matrix[0]) - 1]).size  # class label  count
     finalList = []
     main_list = []
@@ -216,13 +233,18 @@ if len(query) == len(matrix[0]) - 1:
                 x = query[j]  # calculate pdf for each column of that row
                 probability *= ss.norm(mu, sigma).pdf(float(x))
             else:
-                probability *= categorical_probability(query[j], j, str(i))
+                multiple = categorical_probability(query[j], j, str(i))
+                probability *= multiple
         prior = prior_probability(str(i))
-        finalList.append(prior * probability)  # prior probability * descriptor posterior probability
+        descriptor = calculate_descriptor_prior(query, matrix)
+        finalList.append((prior * probability)/descriptor)  # prior probability * descriptor posterior probability
     print("Class 0 Probability P( H0 | X ): ", finalList[0])
     print("Class 1 Probability P( H1 | X ): ", finalList[1])
     main_list.append(finalList.index(np.amax(finalList)))
     print("Final Class: ", main_list[0])
 else:
     print("Invalid input. Please enter again. ")
-print(mean_std_dict.keys, mean_std_dict.values)
+
+"""
+------------------------------------------------------------------------------------------------------------------------
+"""
