@@ -420,7 +420,6 @@ for i in range(folds):
             sample_train_idx = np.random.choice(train_data_idx, len(train_data_idx), replace=True, p=weight_column)
             sample_train_data = matrix[sample_train_idx]
             root = create_tree(sample_train_data)
-            print("Tree created!")
             class_list = calculate_each_test(root, train_data_idx)
             error = calculate_model_error(class_list, train_data, weight_column)
         alpha = (1/2)*math.log((1-error)/error)
@@ -443,8 +442,14 @@ for i in range(folds):
     precision_list.append(precision)
     recall_list.append(recall)
     f1_measure_list.append(f1_measure)
-    print("Accuracy ", accuracy)
+    print("Accuracy :", accuracy)
+    print("Precision :", precision)
+    print("Recall :", recall)
+    print("F1-Measure :", f1_measure)
 
+
+print()
+print("********** Final answer ************")
 accuracy = np.sum(accuracy_list)/len(accuracy_list)
 precision = np.sum(precision_list)/len(precision_list)
 recall = np.sum(recall_list)/len(recall_list)

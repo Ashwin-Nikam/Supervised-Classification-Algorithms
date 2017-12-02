@@ -418,7 +418,6 @@ for i in range(folds):
                                                  replace=True)
         sample_train_data = matrix[sample_train_data_idx]
         root_list.append(create_tree(sample_train_data, []))
-        print("Root height ", height(root_list[j]))
 
     """
     Calculate accuracy of each tree in the forest.
@@ -453,6 +452,9 @@ for i in range(folds):
     recall_list.append(recall)
     f1_measure_list.append(f1_measure)
     print("Accuracy :", accuracy)
+    print("Precision :", precision)
+    print("Recall :", recall)
+    print("F1-Measure :", f1_measure)
 
 """
 Calculate average accuracy of the 10 folds or 
@@ -460,6 +462,7 @@ Calculate average accuracy of the 10 folds or
 computed accuracy for different test data.
 """
 
+print()
 print("********** Final answer ************")
 accuracy = np.sum(accuracy_list)/len(accuracy_list)
 precision = np.sum(precision_list)/len(precision_list)
