@@ -19,7 +19,7 @@ def is_number(n):
 """
 
 
-file = open("project3_dataset1.txt")
+file = open("project3_dataset2.txt")
 lines = file.readlines()
 rows = len(lines)
 columns = len(lines[0].split("\t"))
@@ -249,8 +249,8 @@ accuracy = np.sum(accuracy_list)/len(accuracy_list)
 precision = np.sum(precision_list)/len(precision_list)
 recall = np.sum(recall_list)/len(recall_list)
 f1_measure = np.sum(f1_measure_list)/len(f1_measure_list)
-print("Accuracy: ",accuracy, "Precision: ", precision, "Recall: ", recall,
-"F1-measure: ", f1_measure)
+print("Average Accuracy: ", accuracy, "\nAverage Precision: ", precision, "\nAverage Recall: ", recall,
+"\nAverage F1-measure: ", f1_measure)
 
 
 """
