@@ -229,12 +229,10 @@ if __name__ == '__main__':
 
     normalized_test_input = z_score_map(test_input, means, std_devs)
 
-    for i in range(15):
-        k = i
-        metrics = k_nn(normalized_train_input, normalized_test_input, test_input, k)
-        print("k = ", k)
-        print('Accuracy:', metrics[0])
-        print('Precision:', metrics[1])
-        print('Recall:', metrics[2])
-        print('F-1 measure:', metrics[3])
-        print()
+    k = input("Enter value of k :")
+    k = int(k)
+    metrics = k_nn(normalized_train_input, normalized_test_input, test_input, k)
+    print('Accuracy:', metrics[0])
+    print('Precision:', metrics[1])
+    print('Recall:', metrics[2])
+    print('F-1 measure:', metrics[3])
