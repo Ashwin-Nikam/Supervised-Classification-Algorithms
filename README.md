@@ -1,4 +1,4 @@
-###<center> CSE 601 Data Mining and Bio-Informatics </center>
+# CSE 601 Data Mining and Bio-Informatics
 #### Supervised Classification Algorithms
 
 Two datasets (project3\_dataset1 and project3\_dataset2) have been given along with demo datasets (project3\_dataset3\_test, project3\_dataset3\_train, project3\_dataset4). Please check the **Data_Format** file first for a short description of the two datasets.
