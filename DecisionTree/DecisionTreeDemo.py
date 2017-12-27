@@ -2,7 +2,6 @@ import numpy as np
 import itertools
 import sys
 
-
 """
 ------------------------------------------------------------------------------------------------------------------------
 """
@@ -41,7 +40,7 @@ def is_number(n):
 """
 
 
-file = open("project3_dataset2.txt")
+file = open("../Data/project3_dataset4.txt")
 lines = file.readlines()
 rows = len(lines)
 columns = len(lines[0].split("\t"))
@@ -189,7 +188,13 @@ def compute_best_split(input_matrix, split_values, gini_values):
             handle_numerical_data(input_matrix, i, split_values, gini_values)
 
     gini_values = np.array(gini_values)
-    index = np.argmin(gini_values)
+    index = 0
+    min = sys.maxsize
+    for z in range(len(gini_values)):
+        if gini_values[z] <= min:
+            min = gini_values[z]
+            index = z
+    #index = np.argmin(gini_values)
     criteria = split_values[index]
     return criteria, index
 
@@ -326,6 +331,36 @@ def calculate_each_test(root, test_data_idx):
 """
 
 
+def print_tree(root):
+    current_level = [root]
+    while current_level:
+        for node in current_level:
+            if node.split_criteria is not None:
+                d = main_dictionary[node.column_index]
+                int_list = node.split_criteria
+                category = []
+                for item in int_list:
+                    category.append(str(node.column_index) + " "+
+                                    list(d.keys())[list(d.values()).index(int(item))])
+                print(category, end="")
+            else:
+                leaf_node = str(int(node.final_value))
+                print(list(leaf_node), end="")
+        next_level = list()
+        for n in current_level:
+            if n.left:
+                next_level.append(n.left)
+            if n.right:
+                next_level.append(n.right)
+            current_level = next_level
+        print()
+
+
+"""
+------------------------------------------------------------------------------------------------------------------------
+"""
+
+
 def create_tree(records):
     flag, value = same_class(records)
     if flag:
@@ -352,50 +387,8 @@ def create_tree(records):
 ------------------------------------------------------------------------------------------------------------------------
 """
 
-folds = 10
-part_len = int(len(matrix) / folds)
-metrics_avg = [0.0, 0.0, 0.0, 0.0]
-train_data_idx = set()
-accuracy_list = []
-precision_list = []
-recall_list = []
-f1_measure_list = []
-for i in range(folds):
-    if i != folds - 1:
-        start = (i * part_len)
-        end = start + part_len
-        test_data_idx = set(range(start, end))
-    else:
-        test_data_idx = set(range(i * part_len, len(matrix)))
-    train_data_idx = set(range(len(matrix))).difference(test_data_idx)
-    test_data_idx = list(test_data_idx)
-    train_data_idx = list(train_data_idx)
-    train_data = matrix[train_data_idx]
-    test_data = matrix[test_data_idx]
-
-    root = create_tree(train_data)
-    class_list = calculate_each_test(root, test_data_idx)
-    print("Fold: ", i + 1)
-    accuracy, precision, recall, f1_measure = calculate_accuracy(class_list, test_data)
-    accuracy_list.append(accuracy)
-    precision_list.append(precision)
-    recall_list.append(recall)
-    f1_measure_list.append(f1_measure)
-    print("Accuracy :", accuracy)
-    print("Precision :", precision)
-    print("Recall :", recall)
-    print("F1-Measure :", f1_measure)
-    print()
-
-print()
-print("********** Final answer ************")
-accuracy = np.sum(accuracy_list)/len(accuracy_list)
-precision = np.sum(precision_list)/len(precision_list)
-recall = np.sum(recall_list)/len(recall_list)
-f1_measure = np.sum(f1_measure_list)/len(f1_measure_list)
-print("Average Accuracy: ", accuracy, "\nAverage Precision: ", precision, "\nAverage Recall: ", recall,
-"\nAverage F1-measure: ", f1_measure)
-
+root = create_tree(matrix)
+print_tree(root)
 
 """
 ------------------------------------------------------------------------------------------------------------------------

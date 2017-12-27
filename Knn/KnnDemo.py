@@ -189,7 +189,7 @@ def k_nn(normalized_train_input, normalized_test_input, test_input, k):
 if __name__ == '__main__':
     # Process train data
 
-    f = open('project3_dataset3_train.txt', newline='\n')
+    f = open('../Data/project3_dataset3_train.txt', newline='\n')
     train_input = []
     for line in f:
         line = line.split('\t')
@@ -210,7 +210,7 @@ if __name__ == '__main__':
 
     # Process test data
 
-    f2 = open('project3_dataset3_test.txt', newline='\n')
+    f2 = open('../Data/project3_dataset3_test.txt', newline='\n')
 
     test_input = []
     for line in f2:

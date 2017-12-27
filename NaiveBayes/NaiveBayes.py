@@ -19,7 +19,7 @@ def is_number(n):
 """
 
 
-file = open("project3_dataset2.txt")
+file = open("../Data/project3_dataset2.txt")
 lines = file.readlines()
 rows = len(lines)
 columns = len(lines[0].split("\t"))
